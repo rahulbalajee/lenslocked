@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"html/template"
+	"log"
 	"net/http"
 	"time"
 
@@ -10,15 +12,28 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-	bio := `<script>alert("Haha, you have been PWNED!");</script>`
+func executeTemplate(w http.ResponseWriter, filepath string) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprint(w, "<h1>Welcome to my awesome site!</h1><p>Bio:"+bio+"</p>")
+	tmpl, err := template.ParseFiles(filepath)
+	if err != nil {
+		log.Printf("parsing template: %v", err)
+		http.Error(w, "There was an error parsing template", http.StatusInternalServerError)
+		return
+	}
+	err = tmpl.Execute(w, nil)
+	if err != nil {
+		log.Printf("executing template %v", err)
+		http.Error(w, "Error executing template", http.StatusInternalServerError)
+		return
+	}
+}
+
+func homeHandler(w http.ResponseWriter, r *http.Request) {
+	executeTemplate(w, "templates/home.gohtml")
 }
 
 func contactHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprint(w, "<h1>Contact Page</h1><p>To get in touch, email us at <a href=\"mailto:rahrkb4@gmail.com\">rahrkb4@gmail.com</a>.")
+	executeTemplate(w, "templates/contact.gohtml")
 }
 
 func faqHandler(w http.ResponseWriter, r *http.Request) {
