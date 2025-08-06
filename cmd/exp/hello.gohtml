@@ -1,5 +1,11 @@
 <h1>Hello, {{.Name}}</h1>
 
-{{.Age}}
+<p>Bio: {{.Bio}}</p>
 
-{{.Meta.Visits}}
+<script>
+    const user = {
+        name: {{.Name}},
+        bio: {{.Bio}}
+    };
+    console.log(user);
+</script>
