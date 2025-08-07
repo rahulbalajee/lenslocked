@@ -4,8 +4,27 @@
 
 <script>
     const user = {
-        name: {{.Name}},
-        bio: {{.Bio}}
+        name: {{.Name | js}},
+        bio: {{.Bio | js}},
+        nestedMap: {
+            {{range $key, $value := .NestedMap.MapEntry}}
+            {{$key}}: {{$value | js}},
+            {{end}}
+        }
     };
+
+    // Access map values using JavaScript object notation
+    if (user.nestedMap[1] === "one") {
+        console.log("Found:", user.nestedMap[1]);
+    }
+
+    if (user.nestedMap[2] === "two") {
+        console.log("Found:", user.nestedMap[2]);
+    }
+
+    if (user.nestedMap[3] === "three") {
+        console.log("Found:", user.nestedMap[3]);
+    }
+
     console.log(user);
 </script>

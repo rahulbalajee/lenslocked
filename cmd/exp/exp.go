@@ -6,8 +6,13 @@ import (
 )
 
 type User struct {
-	Name string
-	Bio  string
+	Name      string
+	Bio       string
+	NestedMap NestedMap
+}
+
+type NestedMap struct {
+	MapEntry map[int]string
 }
 
 type UserMeta struct {
@@ -23,6 +28,13 @@ func main() {
 	user := User{
 		Name: "Rahul Balajee",
 		Bio:  `<script>alert("PWNED");</script>`,
+		NestedMap: NestedMap{
+			MapEntry: map[int]string{
+				1: "one",
+				2: "two",
+				3: "three",
+			},
+		},
 	}
 
 	err = t.Execute(os.Stdout, user)
