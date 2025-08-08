@@ -1,44 +1,35 @@
 package main
 
 import (
-	"html/template"
-	"os"
+	"errors"
+	"fmt"
 )
 
-type User struct {
-	Name      string
-	Bio       string
-	NestedMap NestedMap
-}
-
-type NestedMap struct {
-	MapEntry map[int]string
-}
-
-type UserMeta struct {
-	Visits int
-}
-
 func main() {
-	t, err := template.ParseFiles("hello.gohtml")
+	err := CreateOrg()
+	fmt.Println(err)
+}
+
+func Connect() error {
+	return errors.New("connection failed")
+}
+
+func CreateUser() error {
+	err := Connect()
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("create user: %w", err)
 	}
 
-	user := User{
-		Name: "Rahul Balajee",
-		Bio:  `<script>alert("PWNED");</script>`,
-		NestedMap: NestedMap{
-			MapEntry: map[int]string{
-				1: "one",
-				2: "two",
-				3: "three",
-			},
-		},
+	// ... continue
+
+	return nil
+}
+
+func CreateOrg() error {
+	err := CreateUser()
+	if err != nil {
+		return fmt.Errorf("create org: %w", err)
 	}
 
-	err = t.Execute(os.Stdout, user)
-	if err != nil {
-		panic(err)
-	}
+	return nil
 }

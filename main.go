@@ -13,7 +13,6 @@ import (
 )
 
 func executeTemplate(w http.ResponseWriter, filepath string) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	t, err := views.Parse(filepath)
 	if err != nil {
 		log.Printf("parsing template %v", err)
