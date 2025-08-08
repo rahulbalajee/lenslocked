@@ -1,59 +1,36 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"log"
 	"net/http"
-	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"github.com/rahulbalajee/lenslocked/controllers"
 	"github.com/rahulbalajee/lenslocked/views"
 )
 
-func executeTemplate(w http.ResponseWriter, filepath string) {
-	t, err := views.Parse(filepath)
-	if err != nil {
-		log.Printf("parsing template %v", err)
-		http.Error(w, "THere was an error parsing template", http.StatusInternalServerError)
-		return
-	}
-
-	t.Execute(w, nil)
-}
-
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-	executeTemplate(w, "templates/home.gohtml")
-}
-
-func contactHandler(w http.ResponseWriter, r *http.Request) {
-	executeTemplate(w, "templates/contact.gohtml")
-}
-
-func faqHandler(w http.ResponseWriter, r *http.Request) {
-	executeTemplate(w, "templates/faq.gohtml")
-}
-
-func newPageHandler(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
-	defer cancel()
-
-	page := chi.URLParamFromCtx(ctx, "id")
-
-	fmt.Fprintf(w, "The page ID is %s", page)
-}
-
 func main() {
 	r := chi.NewRouter()
+
+	tmpl, err := views.Parse("templates/home.gohtml")
+	if err != nil {
+		panic(err)
+	}
+	r.Get("/", controllers.StaticHandler(tmpl))
+
+	tmpl, err = views.Parse("templates/contact.gohtml")
+	if err != nil {
+		panic(err)
+	}
+	r.Get("/contact", controllers.StaticHandler(tmpl))
+
+	tmpl, err = views.Parse("templates/faq.gohtml")
+	if err != nil {
+		panic(err)
+	}
+	r.Get("/faq", controllers.StaticHandler(tmpl))
+
 	//r.Use(middleware.Logger)
-	r.Get("/", homeHandler)
-	r.Get("/contact", contactHandler)
-	r.Get("/faq", faqHandler)
-	r.Route("/galleries", func(r chi.Router) {
-		r.Use(middleware.Logger)
-		r.Get("/{id}", newPageHandler)
-	})
 	//r.Get("/page/{page-id}", newPageHandler)
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
