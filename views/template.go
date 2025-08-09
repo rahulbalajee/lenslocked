@@ -27,16 +27,6 @@ func ParseFS(fs fs.FS, patterns ...string) (Template, error) {
 	return Template{htmltmpl: tmpl}, nil
 }
 
-/*
-func Parse(filepath string) (Template, error) {
-	tmpl, err := template.ParseFiles(filepath)
-	if err != nil {
-		return Template{}, fmt.Errorf("parsing template %w", err)
-	}
-	return Template{htmltmpl: tmpl}, nil
-}
-*/
-
 func (t Template) Execute(w http.ResponseWriter, data any) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	err := t.htmltmpl.Execute(w, data)
