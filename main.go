@@ -6,23 +6,21 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/rahulbalajee/lenslocked/controllers"
+	"github.com/rahulbalajee/lenslocked/templates"
 	"github.com/rahulbalajee/lenslocked/views"
 )
 
 func main() {
 	r := chi.NewRouter()
 
-	tmpl := views.Must(views.Parse("templates/home.gohtml"))
+	tmpl := views.Must(views.ParseFS(templates.FS, "home.gohtml"))
 	r.Get("/", controllers.StaticHandler(tmpl))
 
-	tmpl = views.Must(views.Parse("templates/contact.gohtml"))
+	tmpl = views.Must(views.ParseFS(templates.FS, "contact.gohtml"))
 	r.Get("/contact", controllers.StaticHandler(tmpl))
 
-	tmpl = views.Must(views.Parse("templates/faq.gohtml"))
+	tmpl = views.Must(views.ParseFS(templates.FS, "faq.gohtml"))
 	r.Get("/faq", controllers.StaticHandler(tmpl))
-
-	tmpl = views.Must(views.Parse("templates/newpage.gohtml"))
-	r.Get("/newpage", controllers.StaticHandler(tmpl))
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Page not found", http.StatusNotFound)
