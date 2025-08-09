@@ -1,35 +1,9 @@
 package main
 
-import (
-	"errors"
-	"fmt"
-)
+import "fmt"
 
 func main() {
-	err := CreateOrg()
-	fmt.Println(err)
-}
+	numbers := []int{1, 2, 3}
 
-func Connect() error {
-	return errors.New("connection failed")
-}
-
-func CreateUser() error {
-	err := Connect()
-	if err != nil {
-		return fmt.Errorf("create user: %w", err)
-	}
-
-	// ... continue
-
-	return nil
-}
-
-func CreateOrg() error {
-	err := CreateUser()
-	if err != nil {
-		return fmt.Errorf("create org: %w", err)
-	}
-
-	return nil
+	fmt.Println(numbers[4])
 }

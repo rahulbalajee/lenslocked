@@ -12,26 +12,14 @@ import (
 func main() {
 	r := chi.NewRouter()
 
-	tmpl, err := views.Parse("templates/home.gohtml")
-	if err != nil {
-		panic(err)
-	}
+	tmpl := views.Must(views.Parse("templates/home.gohtml"))
 	r.Get("/", controllers.StaticHandler(tmpl))
 
-	tmpl, err = views.Parse("templates/contact.gohtml")
-	if err != nil {
-		panic(err)
-	}
+	tmpl = views.Must(views.Parse("templates/contact.gohtml"))
 	r.Get("/contact", controllers.StaticHandler(tmpl))
 
-	tmpl, err = views.Parse("templates/faq.gohtml")
-	if err != nil {
-		panic(err)
-	}
+	tmpl = views.Must(views.Parse("templates/faq.gohtml"))
 	r.Get("/faq", controllers.StaticHandler(tmpl))
-
-	//r.Use(middleware.Logger)
-	//r.Get("/page/{page-id}", newPageHandler)
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Page not found", http.StatusNotFound)
