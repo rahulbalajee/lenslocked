@@ -6,27 +6,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
   </head>
-  <body>
-    <header class="bg-black shadow-lg">
-      <nav class="px-8 py-6 flex items-center text-white">
-        <div class="text-2xl pr-12 font-serif font-bold tracking-wide">Lenslocked</div>
+  <body class="min-h-screen bg-gray-50 flex flex-col">
+    <header class="bg-gray-900 shadow-sm">
+      <nav class="px-8 py-6 flex items-center text-gray-100">
+        <div class="text-2xl pr-12 font-serif font-semibold tracking-wide">Lenslocked</div>
         <div class="flex-grow">
-          <a class="text-lg font-medium hover:text-gray-300 transition-colors duration-200 pr-8" href="/">Home</a>
-          <a class="text-lg font-medium hover:text-gray-300 transition-colors duration-200 pr-8" href="/contact">Contact</a>
-          <a class="text-lg font-medium hover:text-gray-300 transition-colors duration-200 pr-8" href="/faq">FAQ</a>
+          <a class="text-lg font-normal hover:text-white transition-colors duration-200 pr-8" href="/">Home</a>
+          <a class="text-lg font-normal hover:text-white transition-colors duration-200 pr-8" href="/contact">Contact</a>
+          <a class="text-lg font-normal hover:text-white transition-colors duration-200 pr-8" href="/faq">FAQ</a>
         </div>
         <div class="flex items-center space-x-4">
-          <a class="text-lg font-medium hover:text-gray-300 transition-colors duration-200" href="#">Sign in</a>
-          <a class="px-6 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg font-medium transition-all duration-200 border border-gray-700" href="#">Sign up</a>
+          <a class="text-lg font-normal hover:text-white transition-colors duration-200" href="#">Sign in</a>
+          <a class="px-5 py-2 bg-gray-800 hover:bg-gray-700 rounded-md font-normal transition-all duration-200 border border-gray-600" href="/signup">Sign up</a>
         </div>
       </nav>
     </header>
+    <main class="flex-grow">
 
   {{end}}
 
   <!-- Page content goes here -->
 
   {{define "footer"}}
+    </main>
+    <footer class="bg-gray-900 border-t border-gray-700">
+      <div class="px-8 py-5">
+        <div class="flex flex-col md:flex-row justify-between items-center text-gray-400">
+          <div class="text-sm mb-4 md:mb-0">
+            <span class="font-serif font-normal text-gray-100">Lenslocked</span> © 2025. All rights reserved.
+          </div>
+          <div class="flex space-x-6 text-sm">
+            <a href="#" class="hover:text-gray-200 transition-colors duration-200">Privacy</a>
+            <a href="#" class="hover:text-gray-200 transition-colors duration-200">Terms</a>
+            <a href="#" class="hover:text-gray-200 transition-colors duration-200">Support</a>
+          </div>
+        </div>
+      </div>
+    </footer>
   </body>
 </html>
 {{end}}
