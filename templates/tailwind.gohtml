@@ -7,6 +7,21 @@
     <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
   </head>
   <body>
+    <header class="bg-black shadow-lg">
+      <nav class="px-8 py-6 flex items-center text-white">
+        <div class="text-2xl pr-12 font-serif font-bold tracking-wide">Lenslocked</div>
+        <div class="flex-grow">
+          <a class="text-lg font-medium hover:text-gray-300 transition-colors duration-200 pr-8" href="/">Home</a>
+          <a class="text-lg font-medium hover:text-gray-300 transition-colors duration-200 pr-8" href="/contact">Contact</a>
+          <a class="text-lg font-medium hover:text-gray-300 transition-colors duration-200 pr-8" href="/faq">FAQ</a>
+        </div>
+        <div class="flex items-center space-x-4">
+          <a class="text-lg font-medium hover:text-gray-300 transition-colors duration-200" href="#">Sign in</a>
+          <a class="px-6 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg font-medium transition-all duration-200 border border-gray-700" href="#">Sign up</a>
+        </div>
+      </nav>
+    </header>
+
   {{end}}
 
   <!-- Page content goes here -->
