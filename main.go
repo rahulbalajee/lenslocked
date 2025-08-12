@@ -22,7 +22,8 @@ func main() {
 	tmpl = views.Must(views.ParseFS(templates.FS, "faq.gohtml", "tailwind.gohtml"))
 	r.Get("/faq", controllers.FAQ(tmpl))
 
-	usersC := controllers.Users{}
+	// Adapting REST and using it's own controllers for User related endpoints
+	var usersC controllers.Users
 	usersC.Templates.New = views.Must(views.ParseFS(
 		templates.FS,
 		"signup.gohtml",
