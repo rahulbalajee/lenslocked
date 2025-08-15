@@ -1,28 +1,26 @@
 package main
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
+
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 var ErrNotFound = errors.New("not found")
 
 func main() {
-	err := b()
-	if errors.Is(err, ErrNotFound) {
-		fmt.Println("Not found error caught", err)
-	}
-}
-
-func a() error {
-	return ErrNotFound
-}
-
-func b() error {
-	err := a()
+	db, err := sql.Open("pgx", "host=localhost port=5432 user=baloo password=junglebook dbname=lenslocked sslmode=disable")
 	if err != nil {
-		return fmt.Errorf("b: %w", err)
+		panic(err)
+	}
+	defer db.Close()
+
+	err = db.Ping()
+	if err != nil {
+		panic(err)
 	}
 
-	return nil
+	fmt.Println("Connected!")
 }
