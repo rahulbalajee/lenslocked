@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/rahulbalajee/lenslocked/controllers"
+	"github.com/rahulbalajee/lenslocked/models"
 	"github.com/rahulbalajee/lenslocked/templates"
 	"github.com/rahulbalajee/lenslocked/views"
 )
@@ -22,8 +23,21 @@ func main() {
 	tmpl = views.Must(views.ParseFS(templates.FS, "faq.gohtml", "tailwind.gohtml"))
 	r.Get("/faq", controllers.FAQ(tmpl))
 
+	cfg := models.DefaultPostgresConfig()
+	db, err := models.Open(cfg)
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	userService := models.UserService{
+		DB: db,
+	}
+
 	// Adapting REST and using it's own controllers for User related endpoints
-	var usersC controllers.Users
+	usersC := controllers.Users{
+		UserService: &userService,
+	}
 	usersC.Templates.New = views.Must(views.ParseFS(
 		templates.FS,
 		"signup.gohtml",
