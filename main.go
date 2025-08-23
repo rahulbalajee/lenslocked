@@ -31,6 +31,7 @@ func main() {
 	}
 	defer db.Close()
 
+	// Dependency injection (passing in the PostgreSQL DB)
 	userService := models.UserService{
 		DB: db,
 	}
