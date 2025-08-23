@@ -71,3 +71,14 @@ func main() {
 
 	http.ListenAndServe(":3000", csrfMw(r))
 }
+
+/*
+func loggerMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("request came in from %s to %s\n", r.RemoteAddr, r.RequestURI)
+		start := time.Now()
+		next.ServeHTTP(w, r)
+		fmt.Printf("time taken to serve request %v\n", time.Since(start))
+	})
+}
+*/
