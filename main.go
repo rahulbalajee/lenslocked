@@ -36,9 +36,14 @@ func main() {
 		DB: db,
 	}
 
+	sessionService := models.SessionService{
+		DB: db,
+	}
+
 	// Adapting REST and using it's own controllers for User related endpoints
 	usersC := controllers.Users{
-		UserService: &userService,
+		UserService:    &userService,
+		SessionService: &sessionService,
 	}
 	usersC.Templates.New = views.Must(views.ParseFS(
 		templates.FS,
@@ -50,8 +55,8 @@ func main() {
 		"signin.gohtml",
 		"tailwind.gohtml",
 	))
-	r.Get("/signup", usersC.New)
-	r.Post("/signup", usersC.Create)
+	r.Get("/signup", usersC.SignUp)
+	r.Post("/signup", usersC.ProcessSignUp)
 	r.Get("/signin", usersC.SignIn)
 	r.Post("/signin", usersC.ProcessSignIn)
 	r.Get("/users/me", usersC.CurrentUser)

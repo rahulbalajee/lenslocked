@@ -9,16 +9,21 @@ import (
 	"github.com/rahulbalajee/lenslocked/models"
 )
 
+type SessionService interface {
+	Create(userID int) (*models.Session, error)
+	User(token string) (*models.User, error)
+}
+
 type Users struct {
 	Templates struct {
 		New    Executer
 		SignIn Executer
 	}
-	UserService    *models.UserService
-	SessionService *models.SessionService
+	UserService    *models.UserService // tight coupling example (bad practice)
+	SessionService SessionService      // decoupled with interface (best practice) Interface connection happens in line 46 in main.go
 }
 
-func (u Users) New(w http.ResponseWriter, r *http.Request) {
+func (u Users) SignUp(w http.ResponseWriter, r *http.Request) {
 	var data struct {
 		Email string
 	}
@@ -27,7 +32,7 @@ func (u Users) New(w http.ResponseWriter, r *http.Request) {
 	u.Templates.New.Execute(w, r, data)
 }
 
-func (u Users) Create(w http.ResponseWriter, r *http.Request) {
+func (u Users) ProcessSignUp(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 
