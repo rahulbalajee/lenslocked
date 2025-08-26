@@ -16,6 +16,7 @@ func Open(config PostgresConfig) (*sql.DB, error) {
 	return db, nil
 }
 
+// In production fix this, we don't want to keep this public
 func DefaultPostgresConfig() PostgresConfig {
 	return PostgresConfig{
 		Host:     "localhost",

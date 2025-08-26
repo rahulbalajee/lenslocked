@@ -16,6 +16,11 @@ func main() {
 	r := chi.NewRouter()
 
 	tmpl := views.Must(views.ParseFS(templates.FS, "home.gohtml", "tailwind.gohtml"))
+	// Static handler expects controllers.Executor type, but we can pass in Views.Template
+	// because both types implement the exact same method Execute
+	// Execute(w http.ResponseWriter, r *http.Request, data any)
+	// This is where the interface connection happens
+	// With the Executor interface we're decoupling controllers package from views package
 	r.Get("/", controllers.StaticHandler(tmpl))
 
 	tmpl = views.Must(views.ParseFS(templates.FS, "contact.gohtml", "tailwind.gohtml"))
@@ -25,6 +30,7 @@ func main() {
 	r.Get("/faq", controllers.FAQ(tmpl))
 
 	cfg := models.DefaultPostgresConfig()
+	// Init DB connection
 	db, err := models.Open(cfg)
 	if err != nil {
 		panic(err)
@@ -36,13 +42,15 @@ func main() {
 		DB: db,
 	}
 
+	// Dependency injection (passing in the PostgreSQL DB)
 	sessionService := models.SessionService{
 		DB: db,
 	}
 
 	// Adapting REST and using it's own controllers for User related endpoints
 	usersC := controllers.Users{
-		UserService:    &userService,
+		UserService: &userService,
+		// Interface connection for SessionService happens here
 		SessionService: &sessionService,
 	}
 	usersC.Templates.New = views.Must(views.ParseFS(
@@ -68,7 +76,7 @@ func main() {
 
 	fmt.Println("Starting server on :3000...")
 
-	csrfKey := "gFvi45R4fy5xNBlnEeZtQbfAVCYEIAUX"
+	csrfKey := "gFvi45R4fy5xNBlnEeZtQbfAVCYEIAUX" // TODO: Load this from an env var
 	csrfMw := csrf.Protect(
 		[]byte(csrfKey),
 		csrf.Secure(false), // TODO: Fix this before deploy

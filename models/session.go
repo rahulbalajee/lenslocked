@@ -17,7 +17,7 @@ const (
 type Session struct {
 	ID     int
 	UserID int
-	// Token is only set when creating a new session, otherwise empty
+	// Token is only set when creating a new session, otherwise it will be empty
 	Token     string
 	TokenHash string
 }
@@ -54,9 +54,7 @@ func (ss *SessionService) Create(userID int) (*Session, error) {
 		SET token_hash = $2
 		WHERE user_id = $1
 		RETURNING id;`, session.UserID, session.TokenHash)
-
 	err = row.Scan(&session.ID)
-
 	if err == sql.ErrNoRows {
 		row := ss.DB.QueryRow(`
 			INSERT INTO sessions (user_id, token_hash)

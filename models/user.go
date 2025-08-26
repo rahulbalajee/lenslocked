@@ -33,7 +33,7 @@ func (us *UserService) Create(email, password string) (*User, error) {
 	}
 
 	row := us.DB.QueryRow(`
-		INSERT INTO users (email, password)
+		INSERT INTO users (email, password_password)
 		VALUES ($1, $2) RETURNING id;`, email, passwordHash)
 
 	err = row.Scan(&user.ID)
@@ -50,7 +50,7 @@ func (us *UserService) Authenticate(email, password string) (*User, error) {
 		Email: email,
 	}
 
-	row := us.DB.QueryRow(`SELECT id, password FROM users where email=$1`, email)
+	row := us.DB.QueryRow(`SELECT id, password_hash FROM users where email=$1`, email)
 	err := row.Scan(&user.ID, &user.PasswordHash)
 	if err != nil {
 		return nil, fmt.Errorf("authenticate: %w", err)

@@ -8,6 +8,7 @@ import (
 	"github.com/rahulbalajee/lenslocked/models"
 )
 
+// Decouple SessionService from controllers using interface
 type SessionService interface {
 	Create(userID int) (*models.Session, error)
 	User(token string) (*models.User, error)
@@ -36,6 +37,7 @@ func (u Users) ProcessSignUp(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 
+	// Create a new user during signup
 	user, err := u.UserService.Create(email, password)
 	if err != nil {
 		fmt.Println(err)
@@ -43,6 +45,7 @@ func (u Users) ProcessSignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Create a new session for the user
 	session, err := u.SessionService.Create(user.ID)
 	if err != nil {
 		fmt.Println(err)
@@ -51,6 +54,7 @@ func (u Users) ProcessSignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Set the token returned from SessionService.Create in a Cookie in user's browser for auth
 	setCookie(w, CookieSession, session.Token)
 
 	http.Redirect(w, r, "/users/me", http.StatusFound)
@@ -73,6 +77,7 @@ func (u Users) ProcessSignIn(w http.ResponseWriter, r *http.Request) {
 	data.Email = r.FormValue("email")
 	data.Password = r.FormValue("password")
 
+	// Authenticate user using the email and check password with bcrypt
 	user, err := u.UserService.Authenticate(data.Email, data.Password)
 	if err != nil {
 		fmt.Println(err)
@@ -80,6 +85,7 @@ func (u Users) ProcessSignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Create a new session token for the user and set cookie
 	session, err := u.SessionService.Create(user.ID)
 	if err != nil {
 		log.Println(err)
@@ -100,6 +106,7 @@ func (u Users) CurrentUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Pass the token to SessionService and get the *models.User
 	user, err := u.SessionService.User(token)
 	if err != nil {
 		fmt.Println(err)
@@ -118,6 +125,7 @@ func (u Users) ProcessSignOut(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Delete the session token from the DB and remove the cookie from user's browser = log them out
 	err = u.SessionService.Delete(token)
 	if err != nil {
 		fmt.Println(err)

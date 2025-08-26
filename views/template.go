@@ -24,8 +24,10 @@ func Must(t Template, err error) Template {
 }
 
 func ParseFS(fs fs.FS, patterns ...string) (Template, error) {
+	// We need this to be able to add custom function to our templates
 	tmpl := template.New(patterns[0])
 
+	// We need to add the csrfField function before parsing the template or will get an error
 	tmpl = tmpl.Funcs(
 		template.FuncMap{
 			"csrfField": func() (template.HTML, error) {
@@ -34,6 +36,7 @@ func ParseFS(fs fs.FS, patterns ...string) (Template, error) {
 		},
 	)
 
+	// After adding custom function using FuncMap, parse the templates
 	tmpl, err := tmpl.ParseFS(fs, patterns...)
 	if err != nil {
 		return Template{}, fmt.Errorf("parsing template from FS %w", err)
