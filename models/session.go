@@ -85,7 +85,7 @@ func (ss *SessionService) User(token string) (*User, error) {
 
 	// Using the UserID from the session query for that user
 	row = ss.DB.QueryRow(`
-		SELECT email, password
+		SELECT email, password_hash
 		FROM users where id = $1`, user.ID)
 
 	err = row.Scan(&user.Email, &user.PasswordHash)
