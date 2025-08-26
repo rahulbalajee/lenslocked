@@ -16,6 +16,12 @@
           <a class="text-lg font-normal hover:text-white transition-colors duration-200 pr-8" href="/faq">FAQ</a>
         </div>
         <div class="flex items-center space-x-4">
+          <form action="/signout" method="POST">
+            <div class="hidden">
+              {{csrfField}}
+            </div>
+            <button class="text-lg font-normal hover:text-white transition-colors duration-200" type="submit">Sign out</button>
+          </form>
           <a class="text-lg font-normal hover:text-white transition-colors duration-200" href="/signin">Sign in</a>
           <a class="px-5 py-2 bg-gray-800 hover:bg-gray-700 rounded-md font-normal transition-all duration-200 border border-gray-600" href="/signup">Sign up</a>
         </div>
