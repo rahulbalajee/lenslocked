@@ -17,8 +17,9 @@ type SessionService interface {
 
 type Users struct {
 	Templates struct {
-		New    Executer
-		SignIn Executer
+		SignUp      Executer
+		SignIn      Executer
+		CurrentUser Executer
 	}
 	UserService    *models.UserService // tight coupling example (bad practice)
 	SessionService SessionService      // decoupled with interface (best practice) Interface connection happens in line 46 in main.go
@@ -30,7 +31,7 @@ func (u Users) SignUp(w http.ResponseWriter, r *http.Request) {
 	}
 	data.Email = r.FormValue("email")
 
-	u.Templates.New.Execute(w, r, data)
+	u.Templates.SignUp.Execute(w, r, data)
 }
 
 func (u Users) ProcessSignUp(w http.ResponseWriter, r *http.Request) {
@@ -115,7 +116,7 @@ func (u Users) CurrentUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "Current user: %s\n", user.Email)
+	u.Templates.CurrentUser.Execute(w, r, user)
 }
 
 func (u Users) ProcessSignOut(w http.ResponseWriter, r *http.Request) {

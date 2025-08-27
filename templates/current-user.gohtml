@@ -1,0 +1,20 @@
+{{ template "header" .}}
+
+<div class="py-16 flex justify-center">
+    <div class="w-full max-w-md px-8 py-10 bg-white rounded-lg shadow-sm border border-gray-200">
+        <h1 class="text-center text-2xl font-normal text-gray-800 mb-8">
+            Welcome back, {{ .Email }}!
+        </h1>
+        
+        <div class="flex justify-center">
+            <form action="/signout" method="post">
+                {{ csrfField }}
+                <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                    Sign Out
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{ template "footer" .}}

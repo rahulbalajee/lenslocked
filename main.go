@@ -53,7 +53,7 @@ func main() {
 		// Interface connection for SessionService happens here
 		SessionService: &sessionService,
 	}
-	usersC.Templates.New = views.Must(views.ParseFS(
+	usersC.Templates.SignUp = views.Must(views.ParseFS(
 		templates.FS,
 		"signup.gohtml",
 		"tailwind.gohtml",
@@ -61,6 +61,11 @@ func main() {
 	usersC.Templates.SignIn = views.Must(views.ParseFS(
 		templates.FS,
 		"signin.gohtml",
+		"tailwind.gohtml",
+	))
+	usersC.Templates.CurrentUser = views.Must(views.ParseFS(
+		templates.FS,
+		"current-user.gohtml",
 		"tailwind.gohtml",
 	))
 	r.Get("/signup", usersC.SignUp)
