@@ -1,17 +1,8 @@
 package models
 
 import (
-	"crypto/sha256"
 	"database/sql"
-	"encoding/base64"
 	"fmt"
-
-	"github.com/rahulbalajee/lenslocked/rand"
-)
-
-const (
-	// Min number of bytes per each session token
-	MinBytesPerToken = 32
 )
 
 type Session struct {
@@ -23,17 +14,13 @@ type Session struct {
 }
 
 type SessionService struct {
-	DB            *sql.DB
-	BytesPerToken int
+	DB           *sql.DB
+	TokenManager TokenManager
 }
 
 func (ss *SessionService) Create(userID int) (*Session, error) {
-	bytesPerToken := ss.BytesPerToken
-	if bytesPerToken < MinBytesPerToken {
-		bytesPerToken = MinBytesPerToken
-	}
 
-	token, err := rand.String(bytesPerToken)
+	token, tokenHash, err := ss.TokenManager.New()
 	if err != nil {
 		return nil, fmt.Errorf("create: %w", err)
 	}
@@ -41,14 +28,9 @@ func (ss *SessionService) Create(userID int) (*Session, error) {
 	session := Session{
 		UserID:    userID,
 		Token:     token,
-		TokenHash: ss.hash(token),
+		TokenHash: tokenHash,
 	}
 
-	// 1) Query for a user's session
-	// If found update it
-	// If not found create a new session
-
-	// Or skip (1) and try update if error create session
 	row := ss.DB.QueryRow(`
 		UPDATE sessions
 		SET token_hash = $2
@@ -71,7 +53,7 @@ func (ss *SessionService) Create(userID int) (*Session, error) {
 
 func (ss *SessionService) User(token string) (*User, error) {
 	// Hash the session token
-	tokenHash := ss.hash(token)
+	tokenHash := ss.TokenManager.Hash(token)
 
 	// Query for that session wth the hash
 	var user User
@@ -98,7 +80,7 @@ func (ss *SessionService) User(token string) (*User, error) {
 }
 
 func (ss *SessionService) Delete(token string) error {
-	tokenHash := ss.hash(token)
+	tokenHash := ss.TokenManager.Hash(token)
 
 	_, err := ss.DB.Exec(`
 		DELETE FROM sessions
@@ -108,9 +90,4 @@ func (ss *SessionService) Delete(token string) error {
 	}
 
 	return nil
-}
-
-func (ss *SessionService) hash(token string) string {
-	tokenHash := sha256.Sum256([]byte(token))
-	return base64.URLEncoding.EncodeToString(tokenHash[:])
 }

@@ -79,6 +79,7 @@ func (u Users) ProcessSignIn(w http.ResponseWriter, r *http.Request) {
 
 	// Authenticate user using the email and check password with bcrypt
 	user, err := u.UserService.Authenticate(data.Email, data.Password)
+	// TODO: Check for SQL ErrNoRows in case the user tries to login without signing up first
 	if err != nil {
 		fmt.Println(err)
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)
