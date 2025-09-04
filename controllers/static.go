@@ -5,9 +5,11 @@ import (
 	"net/http"
 )
 
+// Closure that captures the template and returns http.HandlerFunc required by Chi router
 func StaticHandler(tmpl Executer) http.HandlerFunc {
+	// This anonymous function is the closure
 	return func(w http.ResponseWriter, r *http.Request) {
-		tmpl.Execute(w, r, nil)
+		tmpl.Execute(w, r, nil) // 'tmpl' is captured from outer scope
 	}
 }
 
