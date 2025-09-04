@@ -52,6 +52,7 @@ func (ss *SessionService) User(token string) (*User, error) {
 	// Query for that session wth the hash
 	var user User
 
+	// Get a user from a token_hash using inner JOIN combining sessions and users table
 	row := ss.DB.QueryRow(`
 		SELECT users.id,
 			users.email,
