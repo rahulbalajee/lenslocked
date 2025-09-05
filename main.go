@@ -29,7 +29,9 @@ func main() {
 	tmpl = views.Must(views.ParseFS(templates.FS, "faq.gohtml", "tailwind.gohtml"))
 	r.Get("/faq", controllers.FAQ(tmpl))
 
+	// Load default config TODO: Fix in production before deploy
 	cfg := models.DefaultPostgresConfig()
+
 	// Init DB connection
 	db, err := models.Open(cfg)
 	if err != nil {

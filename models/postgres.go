@@ -16,7 +16,7 @@ func Open(config PostgresConfig) (*sql.DB, error) {
 	return db, nil
 }
 
-// In production fix this, we don't want to keep this public
+// TODO: In production fix this, we don't want to keep this public
 func DefaultPostgresConfig() PostgresConfig {
 	return PostgresConfig{
 		Host:     "localhost",
@@ -28,6 +28,7 @@ func DefaultPostgresConfig() PostgresConfig {
 	}
 }
 
+// fields required to connect to Postgres DB
 type PostgresConfig struct {
 	Host     string
 	Port     string
