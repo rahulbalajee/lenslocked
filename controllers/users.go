@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -81,7 +83,11 @@ func (u Users) ProcessSignIn(w http.ResponseWriter, r *http.Request) {
 
 	// Authenticate user using the email and check password with bcrypt
 	user, err := u.UserService.Authenticate(data.Email, data.Password)
-	// TODO: Check for SQL ErrNoRows in case the user tries to login without signing up first
+	// Check for SQL ErrNoRows in case the user tries to login without signing up first
+	if errors.Is(err, sql.ErrNoRows) {
+		http.Redirect(w, r, "/signup", http.StatusFound)
+		return
+	}
 	if err != nil {
 		fmt.Println(err)
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)
