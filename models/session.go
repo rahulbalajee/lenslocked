@@ -19,7 +19,7 @@ type SessionService struct {
 }
 
 func (ss *SessionService) Create(userID int) (*Session, error) {
-
+	// Create a token and hash it by using Token Manager service
 	token, tokenHash, err := ss.TokenManager.New()
 	if err != nil {
 		return nil, fmt.Errorf("create: %w", err)

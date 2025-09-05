@@ -16,6 +16,7 @@ type TokenManager struct {
 	BytesPerToken int
 }
 
+// Pointer receiver to make sure BytesPerToken is passed to the method when set in a different function and called
 func (tm *TokenManager) New() (token, tokenHash string, err error) {
 	bytesPerToken := tm.BytesPerToken
 	if bytesPerToken < MinBytesPerToken {
