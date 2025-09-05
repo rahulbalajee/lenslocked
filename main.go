@@ -55,6 +55,8 @@ func main() {
 		// Interface connection for SessionService happens here (plumbing done)
 		SessionService: &sessionService,
 	}
+
+	// Plumbing work to make sure the Templates in users controller are populated with right values before routing happens
 	usersC.Templates.SignUp = views.Must(views.ParseFS(
 		templates.FS,
 		"signup.gohtml",
@@ -70,13 +72,14 @@ func main() {
 		"current-user.gohtml",
 		"tailwind.gohtml",
 	))
+
+	// Routing happens here
 	r.Get("/signup", usersC.SignUp)
 	r.Post("/signup", usersC.ProcessSignUp)
 	r.Get("/signin", usersC.SignIn)
 	r.Post("/signin", usersC.ProcessSignIn)
 	r.Post("/signout", usersC.ProcessSignOut)
 	r.Get("/users/me", usersC.CurrentUser)
-
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Page not found", http.StatusNotFound)
 	})

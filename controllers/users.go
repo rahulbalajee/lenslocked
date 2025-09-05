@@ -35,6 +35,7 @@ func (u Users) SignUp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u Users) ProcessSignUp(w http.ResponseWriter, r *http.Request) {
+	// Get the email and password from the form
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 
@@ -55,7 +56,7 @@ func (u Users) ProcessSignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Set the token returned from SessionService.Create in a Cookie in user's browser for auth
+	// Set the token returned from SessionService.Create in a Cookie in user's browser for authenticating future requests
 	setCookie(w, CookieSession, session.Token)
 
 	http.Redirect(w, r, "/users/me", http.StatusFound)
@@ -104,6 +105,7 @@ func (u Users) CurrentUser(w http.ResponseWriter, r *http.Request) {
 	token, err := readCookie(r, CookieSession)
 	if err != nil {
 		fmt.Println(err)
+		// Cookie doesn't exists, so redirect them to /signin page
 		http.Redirect(w, r, "/signin", http.StatusFound)
 		return
 	}
