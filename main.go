@@ -49,10 +49,10 @@ func main() {
 		DB: db,
 	}
 
-	// Adapting REST and using it's own controllers for User related endpoints
+	// Adapting REST and using it's own controllers for User related endpoints plumbing UserService and SessionService
 	usersC := controllers.Users{
 		UserService: &userService,
-		// Interface connection for SessionService happens here
+		// Interface connection for SessionService happens here (plumbing done)
 		SessionService: &sessionService,
 	}
 	usersC.Templates.SignUp = views.Must(views.ParseFS(
