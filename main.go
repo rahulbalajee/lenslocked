@@ -86,7 +86,7 @@ func main() {
 
 	fmt.Println("Starting server on :3000...")
 
-	csrfKey := "gFvi45R4fy5xNBlnEeZtQbfAVCYEIAUX" // TODO: Load this from an env var
+	csrfKey := "gFvi45R4fy5xNBlnEeZtQbfAVCYEIAUX" // TODO: Load this from an env var before production deploy
 	csrfMw := csrf.Protect(
 		[]byte(csrfKey),
 		csrf.Secure(false), // TODO: Fix this before deploy
