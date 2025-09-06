@@ -66,6 +66,7 @@ func MigrateFS(db *sql.DB, migrationsFS fs.FS, dir string) error {
 
 	goose.SetBaseFS(migrationsFS)
 	defer func() {
+		// Ensure that we remove the FS on the off chance some other part of our app uses goose for migrations and doesn't want to use our FS as these are Global vars in Goose
 		goose.SetBaseFS(nil)
 	}()
 
