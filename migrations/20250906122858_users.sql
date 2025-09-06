@@ -1,12 +1,13 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE widgets (
+CREATE TABLE users (
     id SERIAL PRIMARY KEY,
-    color TEXT
+    email TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL
 );
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE widgets;
+DROP TABLE users;
 -- +goose StatementEnd
