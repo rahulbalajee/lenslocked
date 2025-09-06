@@ -39,6 +39,12 @@ func main() {
 	}
 	defer db.Close()
 
+	// Run DB migrations
+	err = models.Migrate(db, "migrations")
+	if err != nil {
+		panic(err)
+	}
+
 	// Dependency injection (passing in the PostgreSQL DB)
 	userService := models.UserService{
 		DB: db,
