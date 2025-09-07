@@ -91,7 +91,9 @@ func main() {
 		http.Error(w, "Page not found", http.StatusNotFound)
 	})
 
-	fmt.Println("Starting server on :3000...")
+	umw := controllers.UserMiddleware{
+		SessionService: &sessionService,
+	}
 
 	csrfKey := "gFvi45R4fy5xNBlnEeZtQbfAVCYEIAUX" // TODO: Load this from an env var before production deploy
 	csrfMw := csrf.Protect(
@@ -100,7 +102,8 @@ func main() {
 		csrf.TrustedOrigins([]string{"localhost:3000", "127.0.0.1:3000"}),
 	)
 
-	http.ListenAndServe(":3000", csrfMw(r))
+	fmt.Println("Starting server on :3000...")
+	http.ListenAndServe(":3000", csrfMw(umw.SetUser(r)))
 }
 
 /*

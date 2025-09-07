@@ -159,3 +159,29 @@ func (u Users) ProcessSignOut(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, "/signin", http.StatusFound)
 }
+
+type UserMiddleware struct {
+	SessionService SessionService
+}
+
+func (umw UserMiddleware) SetUser(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token, err := readCookie(r, CookieSession)
+		if err != nil {
+			fmt.Println(err)
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		user, err := umw.SessionService.User(token)
+		if err != nil {
+			fmt.Println(err)
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		ctx := context.WithUser(r.Context(), user)
+		r = r.WithContext(ctx)
+		next.ServeHTTP(w, r)
+	})
+}
