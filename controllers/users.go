@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/rahulbalajee/lenslocked/context/context"
 	"github.com/rahulbalajee/lenslocked/models"
 )
 
@@ -108,23 +109,34 @@ func (u Users) ProcessSignIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u Users) CurrentUser(w http.ResponseWriter, r *http.Request) {
-	token, err := readCookie(r, CookieSession)
-	if err != nil {
-		fmt.Println(err)
-		// Cookie doesn't exists, so redirect them to /signin page
-		http.Redirect(w, r, "/signin", http.StatusFound)
-		return
-	}
+	user := context.User(r.Context())
 
-	// Pass the token to SessionService and get the *models.User
-	user, err := u.SessionService.User(token)
-	if err != nil {
-		fmt.Println(err)
+	if user == nil {
 		http.Redirect(w, r, "/signin", http.StatusFound)
 		return
 	}
 
 	u.Templates.CurrentUser.Execute(w, r, user)
+
+	/*
+		token, err := readCookie(r, CookieSession)
+		if err != nil {
+			fmt.Println(err)
+			// Cookie doesn't exists, so redirect them to /signin page
+			http.Redirect(w, r, "/signin", http.StatusFound)
+			return
+		}
+
+		// Pass the token to SessionService and get the *models.User
+		user, err := u.SessionService.User(token)
+		if err != nil {
+			fmt.Println(err)
+			http.Redirect(w, r, "/signin", http.StatusFound)
+			return
+		}
+
+		u.Templates.CurrentUser.Execute(w, r, user)
+	*/
 }
 
 func (u Users) ProcessSignOut(w http.ResponseWriter, r *http.Request) {
