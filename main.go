@@ -40,11 +40,11 @@ func main() {
 		DB: db,
 	}
 
+	// Setup our middleware
 	umw := controllers.UserMiddleware{
 		SessionService: &sessionService,
 	}
 
-	// Setup middleware
 	csrfKey := "gFvi45R4fy5xNBlnEeZtQbfAVCYEIAUX" // TODO: Load this from an env var before production deploy
 	csrfMw := csrf.Protect(
 		[]byte(csrfKey),
@@ -76,6 +76,7 @@ func main() {
 		"tailwind.gohtml",
 	))
 
+	// Setup our router
 	r := chi.NewRouter()
 
 	// Apply middlewares
@@ -101,7 +102,9 @@ func main() {
 	r.Post("/signup", usersC.ProcessSignUp)
 	r.Get("/signin", usersC.SignIn)
 	r.Post("/signin", usersC.ProcessSignIn)
-	r.Post("/signout", usersC.ProcessSignOut)
+
+	//r.Post("/signout", usersC.ProcessSignOut)
+	r.With(umw.RequireUser).Post("/signout", usersC.ProcessSignOut)
 
 	//r.Get("/users/me", usersC.CurrentUser)
 	// Create a subrouter for "/users/me" with RequireUser middleware

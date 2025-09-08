@@ -108,6 +108,7 @@ func (u Users) ProcessSignIn(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/users/me", http.StatusFound)
 }
 
+// SetUser and RequireUser middleware are required, or this will PANIC!
 func (u Users) CurrentUser(w http.ResponseWriter, r *http.Request) {
 	user := context.User(r.Context())
 
