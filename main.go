@@ -14,22 +14,6 @@ import (
 )
 
 func main() {
-	r := chi.NewRouter()
-
-	tmpl := views.Must(views.ParseFS(templates.FS, "home.gohtml", "tailwind.gohtml"))
-	// Static handler expects controllers.Executor type, but we can pass in Views.Template
-	// because both types implement the exact same method Execute
-	// Execute(w http.ResponseWriter, r *http.Request, data any)
-	// This is where the interface connection happens
-	// With the Executor interface we're decoupling controllers package from views package
-	r.Get("/", controllers.StaticHandler(tmpl))
-
-	tmpl = views.Must(views.ParseFS(templates.FS, "contact.gohtml", "tailwind.gohtml"))
-	r.Get("/contact", controllers.StaticHandler(tmpl))
-
-	tmpl = views.Must(views.ParseFS(templates.FS, "faq.gohtml", "tailwind.gohtml"))
-	r.Get("/faq", controllers.FAQ(tmpl))
-
 	// Load default config TODO: Fix in production before deploy
 	cfg := models.DefaultPostgresConfig()
 
@@ -56,6 +40,18 @@ func main() {
 		DB: db,
 	}
 
+	umw := controllers.UserMiddleware{
+		SessionService: &sessionService,
+	}
+
+	// Setup middleware
+	csrfKey := "gFvi45R4fy5xNBlnEeZtQbfAVCYEIAUX" // TODO: Load this from an env var before production deploy
+	csrfMw := csrf.Protect(
+		[]byte(csrfKey),
+		csrf.Secure(false), // TODO: Fix this before deploy
+		csrf.TrustedOrigins([]string{"localhost:3000", "127.0.0.1:3000"}),
+	)
+
 	// Adapting REST and using it's own controllers for User related endpoints plumbing UserService and SessionService
 	usersC := controllers.Users{
 		UserService: &userService,
@@ -80,30 +76,47 @@ func main() {
 		"tailwind.gohtml",
 	))
 
+	r := chi.NewRouter()
+
+	// Apply middlewares
+	r.Use(csrfMw)
+	r.Use(umw.SetUser)
+
+	tmpl := views.Must(views.ParseFS(templates.FS, "home.gohtml", "tailwind.gohtml"))
+	// Static handler expects controllers.Executor type, but we can pass in Views.Template
+	// because both types implement the exact same method Execute
+	// Execute(w http.ResponseWriter, r *http.Request, data any)
+	// This is where the interface connection happens
+	// With the Executor interface we're decoupling controllers package from views package
+	r.Get("/", controllers.StaticHandler(tmpl))
+
+	tmpl = views.Must(views.ParseFS(templates.FS, "contact.gohtml", "tailwind.gohtml"))
+	r.Get("/contact", controllers.StaticHandler(tmpl))
+
+	tmpl = views.Must(views.ParseFS(templates.FS, "faq.gohtml", "tailwind.gohtml"))
+	r.Get("/faq", controllers.FAQ(tmpl))
+
 	// Routing happens here
 	r.Get("/signup", usersC.SignUp)
 	r.Post("/signup", usersC.ProcessSignUp)
 	r.Get("/signin", usersC.SignIn)
 	r.Post("/signin", usersC.ProcessSignIn)
 	r.Post("/signout", usersC.ProcessSignOut)
-	r.Get("/users/me", usersC.CurrentUser)
+
+	//r.Get("/users/me", usersC.CurrentUser)
+	// Create a subrouter for "/users/me" with RequireUser middleware
+	r.Route("/users/me", func(r chi.Router) {
+		r.Use(umw.RequireUser)
+		r.Get("/", usersC.CurrentUser)
+	})
+
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Page not found", http.StatusNotFound)
 	})
 
-	umw := controllers.UserMiddleware{
-		SessionService: &sessionService,
-	}
-
-	csrfKey := "gFvi45R4fy5xNBlnEeZtQbfAVCYEIAUX" // TODO: Load this from an env var before production deploy
-	csrfMw := csrf.Protect(
-		[]byte(csrfKey),
-		csrf.Secure(false), // TODO: Fix this before deploy
-		csrf.TrustedOrigins([]string{"localhost:3000", "127.0.0.1:3000"}),
-	)
-
+	// Start the server
 	fmt.Println("Starting server on :3000...")
-	http.ListenAndServe(":3000", csrfMw(umw.SetUser(r)))
+	http.ListenAndServe(":3000", r)
 }
 
 /*
