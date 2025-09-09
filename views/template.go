@@ -10,6 +10,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/csrf"
+	"github.com/rahulbalajee/lenslocked/context/context"
+	"github.com/rahulbalajee/lenslocked/models"
 )
 
 type Template struct {
@@ -28,10 +30,15 @@ func ParseFS(fs fs.FS, patterns ...string) (Template, error) {
 	tmpl := template.New(patterns[0])
 
 	// We need to add the csrfField function before parsing the template or will get an error
+	// No access to request r here so just stubbing
+	// Template creation: You register stub functions just so the template parser doesn't crash when it sees {{csrfField}} in your .gohtml files when parsing
 	tmpl = tmpl.Funcs(
 		template.FuncMap{
 			"csrfField": func() (template.HTML, error) {
 				return "", fmt.Errorf("csrfField not implemented")
+			},
+			"currentUser": func() (*models.User, error) {
+				return nil, fmt.Errorf("currentUser not implemented")
 			},
 		},
 	)
@@ -46,6 +53,9 @@ func ParseFS(fs fs.FS, patterns ...string) (Template, error) {
 }
 
 func (t Template) Execute(w http.ResponseWriter, r *http.Request, data any) {
+	// Templates can be used concurrently by multiple goroutines (multiple users hitting your site at once)
+	// If you modified the original template directly, you'd have race conditions where one user's request data might leak into another user's response
+	// Cloning gives each request its own isolated copy with the correct request-specific data
 	tmpl, err := t.htmltmpl.Clone()
 	if err != nil {
 		log.Printf("cloning template: %v", err)
@@ -56,6 +66,9 @@ func (t Template) Execute(w http.ResponseWriter, r *http.Request, data any) {
 		template.FuncMap{
 			"csrfField": func() template.HTML {
 				return csrf.TemplateField(r)
+			},
+			"currentUser": func() *models.User {
+				return context.User(r.Context())
 			},
 		},
 	)
