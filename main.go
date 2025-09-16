@@ -31,11 +31,13 @@ func main() {
 	}
 
 	// Dependency injection (passing in the PostgreSQL DB)
+	//userService for creating and managing users
 	userService := models.UserService{
 		DB: db,
 	}
 
 	// Dependency injection (passing in the PostgreSQL DB)
+	//sessionService for creating and managing session
 	sessionService := models.SessionService{
 		DB: db,
 	}
