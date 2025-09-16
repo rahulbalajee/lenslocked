@@ -169,6 +169,14 @@ func (umw UserMiddleware) SetUser(next http.Handler) http.Handler {
 			return
 		}
 
+		/*
+			if token == "" {
+				fmt.Println("no sessionCookie found for user, skipping DB lookup")
+				next.ServeHTTP(w, r)
+				return
+			}
+		*/
+
 		user, err := umw.SessionService.User(token)
 		if err != nil {
 			fmt.Println(err)
