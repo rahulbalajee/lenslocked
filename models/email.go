@@ -7,6 +7,7 @@ const (
 )
 
 type EmailService struct {
+	//  We can also add a DefaultSender field that can be set if needed, otherwise we will use a constant defined in our code
 	DefaultSender string
 
 	// unexported field because the caller doesn't need to know about our implementation
