@@ -1,3 +1,4 @@
 tmp/
 lenslocked
 bcrypt
+.env

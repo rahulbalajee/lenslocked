@@ -1,26 +1,29 @@
 package main
 
 import (
+	"os"
+	"strconv"
+
+	"github.com/joho/godotenv"
 	"github.com/rahulbalajee/lenslocked/models"
 )
 
-const (
-	host     = "sandbox.smtp.mailtrap.io"
-	port     = 587
-	username = "8dc083b1f8a082"
-	password = "d9f5958e5b9ecc"
-)
-
 func main() {
-	/*
-		email := models.Email{
-			From:      "test@lenslocked.com",
-			To:        "jon@calhoun.io",
-			Subject:   "This is a test email",
-			Plaintext: "This is the body of the email",
-			HTML:      `<h1>Hello there buddy!</h1><p>This is the email</p><p>Hope you enjoy it</p>`,
-		}
-	*/
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
+
+	host := os.Getenv("SMTP_HOST")
+
+	portStr := os.Getenv("SMTP_PORT")
+	port, err := strconv.Atoi(portStr)
+	if err != nil {
+		panic(err)
+	}
+
+	username := os.Getenv("SMTP_USERNAME")
+	password := os.Getenv("SMTP_PASSWORD")
 
 	es := models.NewEmailService(models.SMTPConfig{
 		Host:     host,
@@ -29,7 +32,7 @@ func main() {
 		Password: password,
 	})
 
-	err := es.ForgotPassword("jon@calhoun.io", "http://sampleurl")
+	err = es.ForgotPassword("jon@calhoun.io", "http://sampleurl")
 	if err != nil {
 		panic(err)
 	}
