@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 
 	"github.com/rahulbalajee/lenslocked/context/context"
 	"github.com/rahulbalajee/lenslocked/models"
@@ -13,19 +14,29 @@ import (
 
 // Decouple SessionService from controllers using interface
 type SessionService interface {
-	Create(userID int) (*models.Session, error)
+	Create(userID int) (*models.Session, error) // Need to decouple this completely by defining our own types
 	User(token string) (*models.User, error)
 	Delete(token string) error
 }
 
+// Decouple PasswordResetService from controllers using interfaces
+type PasswordResetService interface {
+	Create(email string) (*models.PasswordReset, error)
+	Consume(token string) (*models.User, error)
+}
+
 type Users struct {
 	Templates struct {
-		SignUp      Executer
-		SignIn      Executer
-		CurrentUser Executer
+		SignUp         Executer
+		SignIn         Executer
+		CurrentUser    Executer
+		ForgotPassword Executer
+		CheckYourEmail Executer
 	}
-	UserService    *models.UserService // tight coupling example (bad practice)
-	SessionService SessionService      // decoupled with interface (best practice) Interface connection happens in line 46 in main.go
+	UserService          *models.UserService // tight coupling example (bad practice)
+	SessionService       SessionService      // decoupled with interface (best practice) Interface connection happens in line 46 in main.go
+	PasswordResetService PasswordResetService
+	EmailService         *models.EmailService
 }
 
 func (u Users) SignUp(w http.ResponseWriter, r *http.Request) {
@@ -154,6 +165,46 @@ func (u Users) ProcessSignOut(w http.ResponseWriter, r *http.Request) {
 	deleteCookie(w, CookieSession)
 
 	http.Redirect(w, r, "/signin", http.StatusFound)
+}
+
+func (u Users) ForgotPassword(w http.ResponseWriter, r *http.Request) {
+	var data struct {
+		Email string
+	}
+
+	data.Email = r.FormValue("email")
+	u.Templates.ForgotPassword.Execute(w, r, data)
+}
+
+func (u Users) ProcessForgotPassword(w http.ResponseWriter, r *http.Request) {
+	var data struct {
+		Email string
+	}
+
+	data.Email = r.FormValue("email")
+
+	pwReset, err := u.PasswordResetService.Create(data.Email)
+	if err != nil {
+		// TODO: Handle other cases
+		fmt.Println(err)
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+
+	vals := url.Values{
+		"token": {pwReset.Token},
+	}
+	resetURL := "http://localhost:3000/reset-pw?" + vals.Encode()
+
+	err = u.EmailService.ForgotPassword(data.Email, resetURL)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+
+	// Don't render the reset token here
+	u.Templates.CheckYourEmail.Execute(w, r, data)
 }
 
 type UserMiddleware struct {
