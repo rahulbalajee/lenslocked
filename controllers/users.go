@@ -32,6 +32,7 @@ type Users struct {
 		CurrentUser    Executer
 		ForgotPassword Executer
 		CheckYourEmail Executer
+		ResetPassword  Executer
 	}
 	UserService          *models.UserService // tight coupling example (bad practice)
 	SessionService       SessionService      // decoupled with interface (best practice) Interface connection happens in line 46 in main.go
@@ -209,6 +210,44 @@ func (u Users) ProcessForgotPassword(w http.ResponseWriter, r *http.Request) {
 	// their email to get the token. Sharing it here would be a massive security
 	// hole.
 	u.Templates.CheckYourEmail.Execute(w, r, data)
+}
+
+func (u Users) ResetPassword(w http.ResponseWriter, r *http.Request) {
+	var data struct {
+		Token string
+	}
+	data.Token = r.FormValue("token")
+
+	u.Templates.ResetPassword.Execute(w, r, data)
+}
+
+func (u Users) ProcessResetPassword(w http.ResponseWriter, r *http.Request) {
+	var data struct {
+		Token    string
+		Password string
+	}
+	data.Token = r.FormValue("token")
+	data.Password = r.FormValue("password")
+
+	user, err := u.PasswordResetService.Consume(data.Token)
+	if err != nil {
+		// TODO: Handle different errors
+		fmt.Println(err)
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+
+	// TODO: Update the user's password
+
+	session, err := u.SessionService.Create(user.ID)
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/signin", http.StatusFound)
+		return
+	}
+
+	setCookie(w, CookieSession, session.Token)
+	http.Redirect(w, r, "/users/me", http.StatusFound)
 }
 
 type UserMiddleware struct {
