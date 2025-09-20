@@ -185,7 +185,8 @@ func (u Users) ProcessForgotPassword(w http.ResponseWriter, r *http.Request) {
 
 	pwReset, err := u.PasswordResetService.Create(data.Email)
 	if err != nil {
-		// TODO: Handle other cases
+		// TODO: Handle other cases in the future. For instance,
+		// if a user doesn't exist with the email address.
 		fmt.Println(err)
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)
 		return
@@ -194,6 +195,7 @@ func (u Users) ProcessForgotPassword(w http.ResponseWriter, r *http.Request) {
 	vals := url.Values{
 		"token": {pwReset.Token},
 	}
+	// TODO: Make the URL here configurable
 	resetURL := "http://localhost:3000/reset-pw?" + vals.Encode()
 
 	err = u.EmailService.ForgotPassword(data.Email, resetURL)
@@ -203,7 +205,9 @@ func (u Users) ProcessForgotPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Don't render the reset token here
+	// Don't render the token here! We need them to confirm they have access to
+	// their email to get the token. Sharing it here would be a massive security
+	// hole.
 	u.Templates.CheckYourEmail.Execute(w, r, data)
 }
 
