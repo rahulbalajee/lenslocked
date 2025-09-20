@@ -3,9 +3,12 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/csrf"
+	"github.com/joho/godotenv"
 	"github.com/rahulbalajee/lenslocked/controllers"
 	"github.com/rahulbalajee/lenslocked/migrations"
 	"github.com/rahulbalajee/lenslocked/models"
@@ -13,12 +16,58 @@ import (
 	"github.com/rahulbalajee/lenslocked/views"
 )
 
+type config struct {
+	PSQL models.PostgresConfig
+	SMTP models.SMTPConfig
+	CSRF struct {
+		Key    string
+		Secure bool
+	}
+	Server struct {
+		Address string
+	}
+}
+
+func loadEnvConfig() (config, error) {
+	var cfg config
+
+	err := godotenv.Load()
+	if err != nil {
+		return cfg, err
+	}
+
+	// TODO: read from env
+	cfg.PSQL = models.DefaultPostgresConfig()
+
+	// TODO: SMTP
+	cfg.SMTP.Host = os.Getenv("SMTP_HOST")
+
+	cfg.SMTP.Port, err = strconv.Atoi(os.Getenv("SMTP_PORT"))
+	if err != nil {
+		return cfg, err
+	}
+
+	cfg.SMTP.Username = os.Getenv("SMTP_USERNAME")
+	cfg.SMTP.Password = os.Getenv("SMTP_PASSWORD")
+
+	// TODO: read from env
+	cfg.CSRF.Key = "gFvi45R4fy5xNBlnEeZtQbfAVCYEIAUX"
+	cfg.CSRF.Secure = false
+
+	// TODO: read this from env
+	cfg.Server.Address = ":3000"
+
+	return cfg, nil
+}
+
 func main() {
-	// Load default config TODO: Fix in production before deploy
-	cfg := models.DefaultPostgresConfig()
+	cfg, err := loadEnvConfig()
+	if err != nil {
+		panic(err)
+	}
 
 	// Init DB connection
-	db, err := models.Open(cfg)
+	db, err := models.Open(cfg.PSQL)
 	if err != nil {
 		panic(err)
 	}
@@ -32,33 +81,40 @@ func main() {
 
 	// Dependency injection (passing in the PostgreSQL DB)
 	//userService for creating and managing users
-	userService := models.UserService{
+	userService := &models.UserService{
 		DB: db,
 	}
 
 	// Dependency injection (passing in the PostgreSQL DB)
 	//sessionService for creating and managing session
-	sessionService := models.SessionService{
+	sessionService := &models.SessionService{
 		DB: db,
 	}
 
-	// Setup our middleware
-	umw := controllers.UserMiddleware{
-		SessionService: &sessionService,
+	passwordResetService := &models.PasswordResetService{
+		DB: db,
 	}
 
-	csrfKey := "gFvi45R4fy5xNBlnEeZtQbfAVCYEIAUX" // TODO: Load this from an env var before production deploy
+	emailService := models.NewEmailService(cfg.SMTP)
+
+	// Setup our middleware
+	umw := controllers.UserMiddleware{
+		SessionService: sessionService,
+	}
+
 	csrfMw := csrf.Protect(
-		[]byte(csrfKey),
-		csrf.Secure(false), // TODO: Fix this before deploy
+		[]byte(cfg.CSRF.Key),
+		csrf.Secure(cfg.CSRF.Secure),
 		csrf.TrustedOrigins([]string{"localhost:3000", "127.0.0.1:3000"}),
 	)
 
 	// Adapting REST and using it's own controllers for User related endpoints plumbing UserService and SessionService
 	usersC := controllers.Users{
-		UserService: &userService,
+		UserService: userService,
 		// Interface connection for SessionService happens here (plumbing done)
-		SessionService: &sessionService,
+		SessionService:       sessionService,
+		PasswordResetService: passwordResetService,
+		EmailService:         emailService,
 	}
 
 	// Plumbing work to make sure the Templates in users controller are populated with right values before routing happens
@@ -128,17 +184,9 @@ func main() {
 	})
 
 	// Start the server
-	fmt.Println("Starting server on :3000...")
-	http.ListenAndServe(":3000", r)
+	fmt.Printf("Starting server on %s...", cfg.Server.Address)
+	err = http.ListenAndServe(cfg.Server.Address, r)
+	if err != nil {
+		panic(err)
+	}
 }
-
-/*
-func loggerMiddleware(next http.HandlerFunc) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Printf("request came in from %s to %s\n", r.RemoteAddr, r.RequestURI)
-		start := time.Now()
-		next.ServeHTTP(w, r)
-		fmt.Printf("time taken to serve request %v\n", time.Since(start))
-	})
-}
-*/
