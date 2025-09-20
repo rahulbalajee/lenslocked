@@ -143,6 +143,11 @@ func main() {
 		"check-your-email.gohtml",
 		"tailwind.gohtml",
 	))
+	usersC.Templates.ResetPassword = views.Must(views.ParseFS(
+		templates.FS,
+		"reset-password.gohtml",
+		"tailwind.gohtml",
+	))
 
 	// Setup our router
 	r := chi.NewRouter()
@@ -176,6 +181,8 @@ func main() {
 
 	r.Get("/forgot-pw", usersC.ForgotPassword)
 	r.Post("/forgot-pw", usersC.ProcessForgotPassword)
+	r.Get("/reset-pw", usersC.ResetPassword)
+	r.Post("/reset-pw", usersC.ProcessResetPassword)
 
 	//r.Get("/users/me", usersC.CurrentUser)
 	// Create a subrouter for "/users/me" with RequireUser middleware
