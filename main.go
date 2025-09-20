@@ -138,6 +138,11 @@ func main() {
 		"forgot-pw.gohtml",
 		"tailwind.gohtml",
 	))
+	usersC.Templates.CheckYourEmail = views.Must(views.ParseFS(
+		templates.FS,
+		"check-your-email.gohtml",
+		"tailwind.gohtml",
+	))
 
 	// Setup our router
 	r := chi.NewRouter()
