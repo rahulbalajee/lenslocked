@@ -191,6 +191,8 @@ func main() {
 		r.Get("/", usersC.CurrentUser)
 	})
 
+	r.With(umw.RequireUser).Post("/update-email", usersC.UpdateEmail)
+
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Page not found", http.StatusNotFound)
 	})

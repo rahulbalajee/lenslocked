@@ -125,26 +125,6 @@ func (u Users) CurrentUser(w http.ResponseWriter, r *http.Request) {
 	user := context.User(r.Context())
 
 	u.Templates.CurrentUser.Execute(w, r, user)
-
-	/*
-		token, err := readCookie(r, CookieSession)
-		if err != nil {
-			fmt.Println(err)
-			// Cookie doesn't exists, so redirect them to /signin page
-			http.Redirect(w, r, "/signin", http.StatusFound)
-			return
-		}
-
-		// Pass the token to SessionService and get the *models.User
-		user, err := u.SessionService.User(token)
-		if err != nil {
-			fmt.Println(err)
-			http.Redirect(w, r, "/signin", http.StatusFound)
-			return
-		}
-
-		u.Templates.CurrentUser.Execute(w, r, user)
-	*/
 }
 
 func (u Users) ProcessSignOut(w http.ResponseWriter, r *http.Request) {
@@ -253,6 +233,37 @@ func (u Users) ProcessResetPassword(w http.ResponseWriter, r *http.Request) {
 
 	setCookie(w, CookieSession, session.Token)
 	http.Redirect(w, r, "/users/me", http.StatusFound)
+}
+
+func (u Users) UpdateEmail(w http.ResponseWriter, r *http.Request) {
+	user := context.User(r.Context())
+
+	newEmail := r.FormValue("email")
+
+	err := u.UserService.UpdateEmail(user.ID, newEmail)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+
+	token, err := readCookie(r, CookieSession)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+
+	err = u.SessionService.Delete(token)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+
+	deleteCookie(w, CookieSession)
+
+	http.Redirect(w, r, "/signin", http.StatusFound)
 }
 
 type UserMiddleware struct {
