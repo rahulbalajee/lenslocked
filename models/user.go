@@ -50,7 +50,9 @@ func (us *UserService) Authenticate(email, password string) (*User, error) {
 		Email: email,
 	}
 
-	row := us.DB.QueryRow(`SELECT id, password_hash FROM users where email=$1`, email)
+	row := us.DB.QueryRow(`
+		SELECT id, password_hash FROM users where email=$1`, email)
+
 	err := row.Scan(&user.ID, &user.PasswordHash)
 	if err != nil {
 		return nil, fmt.Errorf("authenticate: %w", err)
@@ -75,6 +77,7 @@ func (us *UserService) UpdatePassword(userID int, password string) error {
 		UPDATE users
 		SET password_hash = $2
 		WHERE id = $1`, userID, passwordHash)
+
 	if err != nil {
 		return fmt.Errorf("update password: %w", err)
 	}
@@ -89,6 +92,7 @@ func (us *UserService) UpdateEmail(userID int, email string) error {
 		UPDATE users
 		SET email = $2
 		WHERE id = $1`, userID, email)
+
 	if err != nil {
 		return fmt.Errorf("update email: %w", err)
 	}
