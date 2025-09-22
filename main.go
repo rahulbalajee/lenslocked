@@ -153,14 +153,18 @@ func main() {
 		"tailwind.gohtml",
 	))
 
-	// Setup our router
+	// Create new Chi router
 	r := chi.NewRouter()
 
-	// Apply middlewares
+	// Apply middlewares that are required for all routes to Chi router we just created
 	r.Use(csrfMw)
 	r.Use(umw.SetUser)
 
-	tmpl := views.Must(views.ParseFS(templates.FS, "home.gohtml", "tailwind.gohtml"))
+	tmpl := views.Must(views.ParseFS(
+		templates.FS,
+		"home.gohtml",
+		"tailwind.gohtml",
+	))
 	// Static handler expects controllers.Executor type, but we can pass in Views.Template
 	// because both types implement the exact same method Execute
 	// Execute(w http.ResponseWriter, r *http.Request, data any)
@@ -168,19 +172,26 @@ func main() {
 	// With the Executor interface we're decoupling controllers package from views package
 	r.Get("/", controllers.StaticHandler(tmpl))
 
-	tmpl = views.Must(views.ParseFS(templates.FS, "contact.gohtml", "tailwind.gohtml"))
+	tmpl = views.Must(views.ParseFS(
+		templates.FS,
+		"contact.gohtml",
+		"tailwind.gohtml",
+	))
 	r.Get("/contact", controllers.StaticHandler(tmpl))
 
-	tmpl = views.Must(views.ParseFS(templates.FS, "faq.gohtml", "tailwind.gohtml"))
+	tmpl = views.Must(views.ParseFS(
+		templates.FS,
+		"faq.gohtml",
+		"tailwind.gohtml",
+	))
 	r.Get("/faq", controllers.FAQ(tmpl))
 
-	// Routing happens here
+	// Routing for users controller happens here
 	r.Get("/signup", usersC.SignUp)
 	r.Post("/signup", usersC.ProcessSignUp)
 	r.Get("/signin", usersC.SignIn)
 	r.Post("/signin", usersC.ProcessSignIn)
 
-	//r.Post("/signout", usersC.ProcessSignOut)
 	r.With(umw.RequireUser).Post("/signout", usersC.ProcessSignOut)
 
 	r.Get("/forgot-pw", usersC.ForgotPassword)
@@ -188,13 +199,13 @@ func main() {
 	r.Get("/reset-pw", usersC.ResetPassword)
 	r.Post("/reset-pw", usersC.ProcessResetPassword)
 
-	//r.Get("/users/me", usersC.CurrentUser)
 	// Create a subrouter for "/users/me" with RequireUser middleware
 	r.Route("/users/me", func(r chi.Router) {
 		r.Use(umw.RequireUser)
 		r.Get("/", usersC.CurrentUser)
 	})
 
+	// TODO: put this logic into /users/me
 	r.With(umw.RequireUser).Post("/update-email", usersC.UpdateEmail)
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
