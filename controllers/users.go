@@ -12,19 +12,6 @@ import (
 	"github.com/rahulbalajee/lenslocked/models"
 )
 
-// Decouple SessionService from controllers using interface
-type SessionService interface {
-	Create(userID int) (*models.Session, error) // Need to decouple this completely by defining our own types
-	User(token string) (*models.User, error)
-	Delete(token string) error
-}
-
-// Decouple PasswordResetService from controllers using interfaces
-type PasswordResetService interface {
-	Create(email string) (*models.PasswordReset, error)
-	Consume(token string) (*models.User, error)
-}
-
 type Users struct {
 	Templates struct {
 		SignUp         Executer
@@ -34,10 +21,10 @@ type Users struct {
 		CheckYourEmail Executer
 		ResetPassword  Executer
 	}
-	UserService          *models.UserService // tight coupling example (bad practice)
-	SessionService       SessionService      // decoupled with interface (best practice) Interface connection happens in line 46 in main.go
-	PasswordResetService PasswordResetService
-	EmailService         *models.EmailService
+	UserService          *models.UserService  // tight coupling example (bad practice)
+	SessionService       SessionService       // decoupled with interface (best practice) Interface connection happens in line 46 in main.go
+	PasswordResetService PasswordResetService // decoupled with interface
+	EmailService         EmailService         // decoupled with interface
 }
 
 func (u Users) SignUp(w http.ResponseWriter, r *http.Request) {
@@ -50,11 +37,9 @@ func (u Users) SignUp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u Users) ProcessSignUp(w http.ResponseWriter, r *http.Request) {
-	// Get the email and password from the form
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 
-	// Create a new user during signup
 	user, err := u.UserService.Create(email, password)
 	if err != nil {
 		fmt.Println(err)
@@ -62,7 +47,6 @@ func (u Users) ProcessSignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create a new session for the user
 	session, err := u.SessionService.Create(user.ID)
 	if err != nil {
 		fmt.Println(err)
@@ -94,7 +78,6 @@ func (u Users) ProcessSignIn(w http.ResponseWriter, r *http.Request) {
 	data.Email = r.FormValue("email")
 	data.Password = r.FormValue("password")
 
-	// Authenticate user using the email and check password with bcrypt
 	user, err := u.UserService.Authenticate(data.Email, data.Password)
 	// Check for SQL ErrNoRows in case the user tries to login without signing up first
 	if errors.Is(err, sql.ErrNoRows) {
@@ -152,8 +135,8 @@ func (u Users) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 	var data struct {
 		Email string
 	}
-
 	data.Email = r.FormValue("email")
+
 	u.Templates.ForgotPassword.Execute(w, r, data)
 }
 
@@ -161,7 +144,6 @@ func (u Users) ProcessForgotPassword(w http.ResponseWriter, r *http.Request) {
 	var data struct {
 		Email string
 	}
-
 	data.Email = r.FormValue("email")
 
 	pwReset, err := u.PasswordResetService.Create(data.Email)
@@ -235,6 +217,7 @@ func (u Users) ProcessResetPassword(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/users/me", http.StatusFound)
 }
 
+// SetUser and RequireUser middleware are required, or this will PANIC!
 func (u Users) UpdateEmail(w http.ResponseWriter, r *http.Request) {
 	user := context.User(r.Context())
 
@@ -264,49 +247,4 @@ func (u Users) UpdateEmail(w http.ResponseWriter, r *http.Request) {
 	deleteCookie(w, CookieSession)
 
 	http.Redirect(w, r, "/signin", http.StatusFound)
-}
-
-type UserMiddleware struct {
-	SessionService SessionService
-}
-
-func (umw UserMiddleware) SetUser(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token, err := readCookie(r, CookieSession)
-		if err != nil {
-			fmt.Println(err)
-			next.ServeHTTP(w, r)
-			return
-		}
-
-		/*
-			if token == "" {
-				fmt.Println("no sessionCookie found for user, skipping DB lookup")
-				next.ServeHTTP(w, r)
-				return
-			}
-		*/
-
-		user, err := umw.SessionService.User(token)
-		if err != nil {
-			fmt.Println(err)
-			next.ServeHTTP(w, r)
-			return
-		}
-
-		ctx := context.WithUser(r.Context(), user)
-		r = r.WithContext(ctx)
-		next.ServeHTTP(w, r)
-	})
-}
-
-func (umw UserMiddleware) RequireUser(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		user := context.User(r.Context())
-		if user == nil {
-			http.Redirect(w, r, "/signin", http.StatusFound)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
 }

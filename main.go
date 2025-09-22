@@ -20,8 +20,9 @@ type config struct {
 	PSQL models.PostgresConfig
 	SMTP models.SMTPConfig
 	CSRF struct {
-		Key    string
-		Secure bool
+		Key            string
+		Secure         bool
+		TrustedOrigins []string
 	}
 	Server struct {
 		Address string
@@ -52,6 +53,7 @@ func loadEnvConfig() (config, error) {
 	if err != nil {
 		return cfg, err
 	}
+	cfg.CSRF.TrustedOrigins = []string{"localhost:3000", "127.0.0.1:3000"}
 
 	cfg.Server.Address = os.Getenv("SERVER_ADDRESS")
 
@@ -98,21 +100,22 @@ func main() {
 	// emailService for sending emails to users
 	emailService := models.NewEmailService(cfg.SMTP)
 
-	// Setup our middleware
+	// Setup User middleware
 	umw := controllers.UserMiddleware{
 		SessionService: sessionService,
 	}
 
+	// Setup CSRF middleware
 	csrfMw := csrf.Protect(
 		[]byte(cfg.CSRF.Key),
 		csrf.Secure(cfg.CSRF.Secure),
-		csrf.TrustedOrigins([]string{"localhost:3000", "127.0.0.1:3000"}),
+		csrf.TrustedOrigins(cfg.CSRF.TrustedOrigins),
 	)
 
 	// Adapting REST and using it's own controllers for User related endpoints plumbing UserService and SessionService
 	usersC := controllers.Users{
 		UserService: userService,
-		// Interface connection for SessionService happens here (plumbing done)
+		// Interface connection for SessionService and other services happens here (plumbing done)
 		SessionService:       sessionService,
 		PasswordResetService: passwordResetService,
 		EmailService:         emailService,
