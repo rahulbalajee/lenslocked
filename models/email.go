@@ -10,31 +10,11 @@ const (
 	DefaultSender = "support@lenslocked.com"
 )
 
-type EmailService struct {
-	//  We can also add a DefaultSender field that can be set if needed, otherwise we will use a constant defined in our code
-	DefaultSender string
-
-	// unexported field because the caller doesn't need to know about our implementation
-	dialer *mail.Dialer
-}
-
 type SMTPConfig struct {
 	Host     string
 	Port     int
 	Username string
 	Password string
-}
-
-// Factory to construct EmailService and the unexported field
-func NewEmailService(config SMTPConfig) *EmailService {
-	es := EmailService{
-		dialer: mail.NewDialer(config.Host,
-			config.Port,
-			config.Username,
-			config.Password),
-	}
-
-	return &es
 }
 
 type Email struct {
@@ -45,10 +25,29 @@ type Email struct {
 	HTML      string
 }
 
+type EmailService struct {
+	//  We can also add a DefaultSender field that can be set if needed, otherwise we will use a constant defined in our code
+	DefaultSender string
+
+	// unexported field because the caller doesn't need to know about our implementation
+	dialer *mail.Dialer
+}
+
+// Factory to construct EmailService and the unexported field
+func NewEmailService(config SMTPConfig) *EmailService {
+	return &EmailService{
+		dialer: mail.NewDialer(
+			config.Host,
+			config.Port,
+			config.Username,
+			config.Password),
+	}
+}
+
 func (es *EmailService) Send(email Email) error {
 	msg := mail.NewMessage()
 
-	// Set from to a default value in case it's not set in Email
+	// setFrom() to a default value in case it's not set in Email
 	es.setFrom(msg, email)
 
 	msg.SetHeader("To", email.To)
@@ -66,7 +65,7 @@ func (es *EmailService) Send(email Email) error {
 
 	err := es.dialer.DialAndSend(msg)
 	if err != nil {
-		return fmt.Errorf("send: %w", err)
+		return fmt.Errorf("send email: %w", err)
 	}
 
 	return nil

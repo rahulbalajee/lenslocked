@@ -89,10 +89,13 @@ func main() {
 		DB: db,
 	}
 
+	// Dependency injection (passing in the PostgreSQL DB)
+	// passwordResetService for creating and managing password resets for users
 	passwordResetService := &models.PasswordResetService{
 		DB: db,
 	}
 
+	// emailService for sending emails to users
 	emailService := models.NewEmailService(cfg.SMTP)
 
 	// Setup our middleware
