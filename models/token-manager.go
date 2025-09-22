@@ -23,6 +23,7 @@ func (tm *TokenManager) New() (token, tokenHash string, err error) {
 		bytesPerToken = MinBytesPerToken
 	}
 
+	// rand.String() uses the Crypto rand package from stdlib to generate a unique random string
 	token, err = rand.String(bytesPerToken)
 	if err != nil {
 		return "", "", err

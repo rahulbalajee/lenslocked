@@ -7,7 +7,7 @@ import (
 
 type Session struct {
 	ID     int
-	UserID int
+	UserID int // Establish connection between user and session
 	// Token is only set when creating a new session, otherwise it will be empty
 	Token     string
 	TokenHash string
@@ -22,7 +22,7 @@ func (ss *SessionService) Create(userID int) (*Session, error) {
 	// Create a token and hash it by using Token Manager service
 	token, tokenHash, err := ss.TokenManager.New()
 	if err != nil {
-		return nil, fmt.Errorf("create: %w", err)
+		return nil, fmt.Errorf("create token: %w", err)
 	}
 
 	session := Session{
@@ -37,19 +37,18 @@ func (ss *SessionService) Create(userID int) (*Session, error) {
 		UPDATE
 		SET token_hash = $2
 		RETURNING id;`, session.UserID, session.TokenHash)
+
 	err = row.Scan(&session.ID)
 	if err != nil {
-		return nil, fmt.Errorf("create: %w", err)
+		return nil, fmt.Errorf("create token: %w", err)
 	}
 
 	return &session, nil
 }
 
 func (ss *SessionService) User(token string) (*User, error) {
-	// Hash the session token
 	tokenHash := ss.TokenManager.Hash(token)
 
-	// Query for that session wth the hash
 	var user User
 
 	// Get a user from a token_hash using inner JOIN combining sessions and users table
@@ -61,18 +60,11 @@ func (ss *SessionService) User(token string) (*User, error) {
 			JOIN sessions ON users.id = sessions.user_id
 		WHERE sessions.token_hash = $1;`, tokenHash)
 
-	/*
-		SELECT users.id, users.email, users.password_hash FROM sessions
-		INNER JOIN users ON users.id = sessions.user_id
-		WHERE sessions.token_hash = $1
-	*/
-
 	err := row.Scan(&user.ID, &user.Email, &user.PasswordHash)
 	if err != nil {
-		return nil, fmt.Errorf("user: %w", err)
+		return nil, fmt.Errorf("get user by token: %w", err)
 	}
 
-	// Return the user
 	return &user, nil
 }
 
@@ -82,8 +74,9 @@ func (ss *SessionService) Delete(token string) error {
 	_, err := ss.DB.Exec(`
 		DELETE FROM sessions
 		WHERE token_hash = $1;`, tokenHash)
+
 	if err != nil {
-		return fmt.Errorf("delete: %w", err)
+		return fmt.Errorf("delete token: %w", err)
 	}
 
 	return nil
