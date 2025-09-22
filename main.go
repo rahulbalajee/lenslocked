@@ -36,26 +36,24 @@ func loadEnvConfig() (config, error) {
 		return cfg, err
 	}
 
-	// TODO: read from env
+	// TODO: read Postgres config from env
 	cfg.PSQL = models.DefaultPostgresConfig()
 
-	// TODO: SMTP
 	cfg.SMTP.Host = os.Getenv("SMTP_HOST")
-
 	cfg.SMTP.Port, err = strconv.Atoi(os.Getenv("SMTP_PORT"))
 	if err != nil {
 		return cfg, err
 	}
-
 	cfg.SMTP.Username = os.Getenv("SMTP_USERNAME")
 	cfg.SMTP.Password = os.Getenv("SMTP_PASSWORD")
 
-	// TODO: read from env
-	cfg.CSRF.Key = "gFvi45R4fy5xNBlnEeZtQbfAVCYEIAUX"
-	cfg.CSRF.Secure = false
+	cfg.CSRF.Key = os.Getenv("CSRF_KEY")
+	cfg.CSRF.Secure, err = strconv.ParseBool(os.Getenv("CSRF_SECURE"))
+	if err != nil {
+		return cfg, err
+	}
 
-	// TODO: read this from env
-	cfg.Server.Address = ":3000"
+	cfg.Server.Address = os.Getenv("SERVER_ADDRESS")
 
 	return cfg, nil
 }
@@ -66,14 +64,14 @@ func main() {
 		panic(err)
 	}
 
-	// Init DB connection
+	// Initiate DB connection and close it later when function exits
 	db, err := models.Open(cfg.PSQL)
 	if err != nil {
 		panic(err)
 	}
 	defer db.Close()
 
-	// Run DB migrations
+	// Run DB migrations automatically at startup
 	err = models.MigrateFS(db, migrations.FS, ".")
 	if err != nil {
 		panic(err)
