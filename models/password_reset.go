@@ -1,14 +1,10 @@
 package models
 
 import (
-	"crypto/sha256"
 	"database/sql"
-	"encoding/base64"
 	"fmt"
 	"strings"
 	"time"
-
-	"github.com/rahulbalajee/lenslocked/rand"
 )
 
 const (
@@ -26,14 +22,10 @@ type PasswordReset struct {
 
 type PasswordResetService struct {
 	DB *sql.DB
-	// BytesPerToken is used to determine how many bytes to use when generating
-	// each password reset token. If this value is not set or is less than the
-	// MinBytesPerToken const it will be ignored and MinBytesPerToken will be
-	// used.
-	BytesPerToken int
 	// Amount of time that a password reset is valid for
 	// defaults to DefaultResetDuration
-	Duration time.Duration
+	Duration     time.Duration
+	TokenManager TokenManager
 }
 
 func (pr *PasswordResetService) Create(email string) (*PasswordReset, error) {
@@ -41,21 +33,18 @@ func (pr *PasswordResetService) Create(email string) (*PasswordReset, error) {
 
 	var userID int
 
-	row := pr.DB.QueryRow(`SELECT id FROM users WHERE email = $1`, email)
+	row := pr.DB.QueryRow(`
+		SELECT id FROM users WHERE email = $1`, email)
+
 	err := row.Scan(&userID)
 	if err != nil {
 		// TODO: consider returning a different error when user doesn't exists
-		return nil, fmt.Errorf("create: %w", err)
+		return nil, fmt.Errorf("create password reset: %w", err)
 	}
 
-	bytesPerToken := pr.BytesPerToken
-	if bytesPerToken < MinBytesPerToken {
-		bytesPerToken = MinBytesPerToken
-	}
-
-	token, err := rand.String(bytesPerToken)
+	token, tokenHash, err := pr.TokenManager.New()
 	if err != nil {
-		return nil, fmt.Errorf("create: %w", err)
+		return nil, fmt.Errorf("create password reset: %w", err)
 	}
 
 	duration := pr.Duration
@@ -66,7 +55,7 @@ func (pr *PasswordResetService) Create(email string) (*PasswordReset, error) {
 	pwReset := PasswordReset{
 		UserID:    userID,
 		Token:     token,
-		TokenHash: pr.hash(token),
+		TokenHash: tokenHash,
 		ExpiresAt: time.Now().Add(duration),
 	}
 
@@ -86,13 +75,8 @@ func (pr *PasswordResetService) Create(email string) (*PasswordReset, error) {
 	return &pwReset, nil
 }
 
-func (pr *PasswordResetService) hash(token string) string {
-	tokenHash := sha256.Sum256([]byte(token))
-	return base64.URLEncoding.EncodeToString(tokenHash[:])
-}
-
 func (pr *PasswordResetService) Consume(token string) (*User, error) {
-	tokenHash := pr.hash(token)
+	tokenHash := pr.TokenManager.Hash(token)
 
 	var user User
 	var pwReset PasswordReset
@@ -115,7 +99,7 @@ func (pr *PasswordResetService) Consume(token string) (*User, error) {
 		&user.PasswordHash,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("consume: %w", err)
+		return nil, fmt.Errorf("consume password reset: %w", err)
 	}
 
 	if time.Now().After(pwReset.ExpiresAt) {
@@ -124,7 +108,7 @@ func (pr *PasswordResetService) Consume(token string) (*User, error) {
 
 	err = pr.delete(pwReset.ID)
 	if err != nil {
-		return nil, fmt.Errorf("consume: %w", err)
+		return nil, fmt.Errorf("consume password reset: %w", err)
 	}
 
 	return &user, nil
@@ -134,8 +118,9 @@ func (pr *PasswordResetService) delete(id int) error {
 	_, err := pr.DB.Exec(`
 		DELETE FROM password_resets
 		WHERE id = $1`, id)
+
 	if err != nil {
-		return fmt.Errorf("delete: %w", err)
+		return fmt.Errorf("delete password reset: %w", err)
 	}
 
 	return nil
