@@ -39,7 +39,7 @@
               <p>{{.}}</p>
             </div>
           </div>
-          <a href="#" class="text-red-700 hover:text-red-600 font-medium">×</a>
+          <a href="#" onclick="closeAlert(event)" class="text-red-700 hover:text-red-600 font-medium">×</a>
         </div>
       {{end}}
     </div>
@@ -66,6 +66,11 @@
         </div>
       </div>
     </footer>
+    <script>
+      function closeAlert(event) {
+        event.target.parentElement.remove();
+      }
+    </script>
   </body>
 </html>
 {{end}}
