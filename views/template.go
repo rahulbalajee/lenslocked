@@ -2,6 +2,7 @@ package views
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"html/template"
 	"io"
@@ -13,6 +14,10 @@ import (
 	"github.com/rahulbalajee/lenslocked/context/context"
 	"github.com/rahulbalajee/lenslocked/models"
 )
+
+type public interface {
+	Public() string
+}
 
 type Template struct {
 	htmltmpl *template.Template
@@ -41,10 +46,7 @@ func ParseFS(fs fs.FS, patterns ...string) (Template, error) {
 				return nil, fmt.Errorf("currentUser not implemented")
 			},
 			"errors": func() []string {
-				return []string{
-					"The email address you provided is already associated with an account.",
-					"Something went wrong.",
-				}
+				return nil
 			},
 		},
 	)
@@ -58,7 +60,7 @@ func ParseFS(fs fs.FS, patterns ...string) (Template, error) {
 	return Template{htmltmpl: tmpl}, nil
 }
 
-func (t Template) Execute(w http.ResponseWriter, r *http.Request, data any) {
+func (t Template) Execute(w http.ResponseWriter, r *http.Request, data any, errs ...error) {
 	// Templates can be used concurrently by multiple goroutines (multiple users hitting your site at once)
 	// If you modified the original template directly, you'd have race conditions where one user's request data might leak into another user's response
 	// Cloning gives each request its own isolated copy with the correct request-specific data
@@ -68,6 +70,9 @@ func (t Template) Execute(w http.ResponseWriter, r *http.Request, data any) {
 		http.Error(w, "There was an error rendering the page", http.StatusInternalServerError)
 		return
 	}
+
+	errMsgs := errMessages(errs...)
+
 	tmpl.Funcs(
 		template.FuncMap{
 			"csrfField": func() template.HTML {
@@ -75,6 +80,9 @@ func (t Template) Execute(w http.ResponseWriter, r *http.Request, data any) {
 			},
 			"currentUser": func() *models.User {
 				return context.User(r.Context())
+			},
+			"errors": func() []string {
+				return errMsgs
 			},
 		},
 	)
@@ -90,4 +98,20 @@ func (t Template) Execute(w http.ResponseWriter, r *http.Request, data any) {
 	}
 
 	io.Copy(w, &buf)
+}
+
+func errMessages(errs ...error) []string {
+	var msgs []string
+
+	for _, err := range errs {
+		var pubErr public
+		if errors.As(err, &pubErr) {
+			msgs = append(msgs, pubErr.Public())
+		} else {
+			fmt.Println(err)
+			msgs = append(msgs, "Something went wrong.")
+		}
+	}
+
+	return msgs
 }
