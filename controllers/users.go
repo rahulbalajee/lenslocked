@@ -2,13 +2,13 @@ package controllers
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"net/url"
 
 	"github.com/rahulbalajee/lenslocked/context/context"
+	"github.com/rahulbalajee/lenslocked/errors"
 	"github.com/rahulbalajee/lenslocked/models"
 )
 
@@ -46,6 +46,9 @@ func (u Users) ProcessSignUp(w http.ResponseWriter, r *http.Request) {
 
 	user, err := u.UserService.Create(data.Email, data.Password)
 	if err != nil {
+		if errors.Is(err, models.ErrEmailTaken) {
+			err = errors.Public(err, "Email address is already taken.")
+		}
 		u.Templates.SignUp.Execute(w, r, data, err)
 		return
 	}
