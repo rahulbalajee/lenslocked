@@ -63,7 +63,6 @@ func (gs *GalleryService) ByUserID(userID int) ([]Gallery, error) {
 		SELECT id, title 
 		FROM galleries 
 		WHERE user_id = $1;`, userID)
-
 	if err != nil {
 		return nil, fmt.Errorf("query galleries by user id: %w", err)
 	}
@@ -81,6 +80,7 @@ func (gs *GalleryService) ByUserID(userID int) ([]Gallery, error) {
 
 		galleries = append(galleries, gallery)
 	}
+
 	if rows.Err() != nil {
 		return nil, fmt.Errorf("query galleries by user id: %w", err)
 	}
