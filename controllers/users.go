@@ -92,7 +92,8 @@ func (u Users) ProcessSignIn(w http.ResponseWriter, r *http.Request) {
 	}
 	if err != nil {
 		fmt.Println(err)
-		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		err = errors.Public(err, "Check your username and password.")
+		u.Templates.SignIn.Execute(w, r, data, err)
 		return
 	}
 
@@ -154,10 +155,11 @@ func (u Users) ProcessForgotPassword(w http.ResponseWriter, r *http.Request) {
 
 	pwReset, err := u.PasswordResetService.Create(data.Email)
 	if err != nil {
-		// TODO: Handle other cases in the future. For instance,
-		// if a user doesn't exist with the email address.
 		fmt.Println(err)
-		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		if errors.Is(err, sql.ErrNoRows) {
+			err = errors.Public(err, "Email does not exists in our database. Please sign up first.")
+		}
+		u.Templates.ForgotPassword.Execute(w, r, data, err)
 		return
 	}
 
