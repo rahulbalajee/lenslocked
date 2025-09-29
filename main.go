@@ -164,6 +164,7 @@ func main() {
 	galleriesC.Template.New = views.Must(views.ParseFS(
 		templates.FS,
 		"galleries/new.gohtml",
+		"tailwind.gohtml",
 	))
 
 	// Create new Chi router
