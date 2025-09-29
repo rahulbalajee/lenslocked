@@ -113,6 +113,7 @@ func main() {
 	csrfMw := csrf.Protect(
 		[]byte(cfg.CSRF.Key),
 		csrf.Secure(cfg.CSRF.Secure),
+		csrf.Path("/"),
 		csrf.TrustedOrigins(cfg.CSRF.TrustedOrigins),
 	)
 
@@ -222,7 +223,12 @@ func main() {
 	// TODO: put this logic into /users/me
 	r.With(umw.RequireUser).Post("/update-email", usersC.UpdateEmail)
 
-	r.Get("/galleries/new", galleriesC.New)
+	r.Route("/galleries", func(r chi.Router) {
+		r.Group(func(r chi.Router) {
+			r.Use(umw.RequireUser)
+			r.Get("/new", galleriesC.New)
+		})
+	})
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Page not found", http.StatusNotFound)
