@@ -1,7 +1,10 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
+
+	"github.com/rahulbalajee/lenslocked/context/context"
 )
 
 type Galleries struct {
@@ -17,4 +20,22 @@ func (g Galleries) New(w http.ResponseWriter, r *http.Request) {
 	}
 	data.Title = r.FormValue("title")
 	g.Template.New.Execute(w, r, data)
+}
+
+func (g Galleries) ProcessNew(w http.ResponseWriter, r *http.Request) {
+	var data struct {
+		UserID int
+		Title  string
+	}
+	data.UserID = context.User(r.Context()).ID
+	data.Title = r.FormValue("title")
+
+	gallery, err := g.GalleryService.Create(data.Title, data.UserID)
+	if err != nil {
+		g.Template.New.Execute(w, r, data, err)
+		return
+	}
+
+	editPath := fmt.Sprintf("/galleries/%d/edit", gallery.ID)
+	http.Redirect(w, r, editPath, http.StatusFound)
 }
