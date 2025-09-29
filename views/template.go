@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"path"
 
 	"github.com/gorilla/csrf"
 	"github.com/rahulbalajee/lenslocked/context/context"
@@ -32,7 +33,7 @@ func Must(t Template, err error) Template {
 
 func ParseFS(fs fs.FS, patterns ...string) (Template, error) {
 	// We need this to be able to add custom function to our templates
-	tmpl := template.New(patterns[0])
+	tmpl := template.New(path.Base(patterns[0]))
 
 	// We need to add the csrfField function before parsing the template or will get an error
 	// No access to request r here so just stubbing

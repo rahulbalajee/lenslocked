@@ -100,6 +100,10 @@ func main() {
 	// emailService for sending emails to users
 	emailService := models.NewEmailService(cfg.SMTP)
 
+	galleryService := &models.GalleryService{
+		DB: db,
+	}
+
 	// Setup User middleware
 	umw := controllers.UserMiddleware{
 		SessionService: sessionService,
@@ -151,6 +155,15 @@ func main() {
 		templates.FS,
 		"reset-password.gohtml",
 		"tailwind.gohtml",
+	))
+
+	galleriesC := controllers.Galleries{
+		GalleryService: galleryService,
+	}
+
+	galleriesC.Template.New = views.Must(views.ParseFS(
+		templates.FS,
+		"galleries/new.gohtml",
 	))
 
 	// Create new Chi router
@@ -207,6 +220,8 @@ func main() {
 
 	// TODO: put this logic into /users/me
 	r.With(umw.RequireUser).Post("/update-email", usersC.UpdateEmail)
+
+	r.Get("/galleries/new", galleriesC.New)
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Page not found", http.StatusNotFound)
