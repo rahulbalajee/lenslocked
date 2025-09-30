@@ -167,6 +167,11 @@ func main() {
 		"galleries/new.gohtml",
 		"tailwind.gohtml",
 	))
+	galleriesC.Template.Edit = views.Must(views.ParseFS(
+		templates.FS,
+		"galleries/edit.gohtml",
+		"tailwind.gohtml",
+	))
 
 	// Create new Chi router
 	r := chi.NewRouter()
@@ -228,6 +233,7 @@ func main() {
 			r.Use(umw.RequireUser)
 			r.Get("/new", galleriesC.New)
 			r.Post("/", galleriesC.ProcessNew)
+			r.Get("/{id}/edit", galleriesC.Edit)
 		})
 	})
 

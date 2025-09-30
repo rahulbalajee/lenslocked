@@ -77,3 +77,4 @@ func (g Galleries) Edit(w http.ResponseWriter, r *http.Request) {
 
 	g.Template.Edit.Execute(w, r, data)
 }
+
