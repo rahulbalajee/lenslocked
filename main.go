@@ -234,6 +234,7 @@ func main() {
 			r.Get("/new", galleriesC.New)
 			r.Post("/", galleriesC.ProcessNew)
 			r.Get("/{id}/edit", galleriesC.Edit)
+			r.Post("/{id}", galleriesC.ProcessEdit)
 		})
 	})
 
