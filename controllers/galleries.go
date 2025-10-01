@@ -13,8 +13,9 @@ import (
 
 type Galleries struct {
 	Template struct {
-		New  Executer
-		Edit Executer
+		New   Executer
+		Edit  Executer
+		Index Executer
 	}
 	GalleryService GalleryService
 }
@@ -111,4 +112,33 @@ func (g Galleries) ProcessEdit(w http.ResponseWriter, r *http.Request) {
 
 	editPath := fmt.Sprintf("/galleries/%d/edit", gallery.ID)
 	http.Redirect(w, r, editPath, http.StatusFound)
+}
+
+func (g Galleries) Index(w http.ResponseWriter, r *http.Request) {
+	type Gallery struct {
+		ID    int
+		Title string
+	}
+
+	var data struct {
+		Galleries []Gallery
+	}
+
+	user := context.User(r.Context())
+
+	galleries, err := g.GalleryService.ByUserID(user.ID)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+
+	for _, gallery := range galleries {
+		data.Galleries = append(data.Galleries, Gallery{
+			ID:    gallery.ID,
+			Title: gallery.Title,
+		})
+	}
+
+	g.Template.Index.Execute(w, r, data)
 }

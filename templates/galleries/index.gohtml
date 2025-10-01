@@ -1,0 +1,16 @@
+{{ template "header" .}}
+
+<div class="py-16 flex justify-center">
+    <div class="w-full max-w-md px-8 py-10 bg-white rounded-lg shadow-sm border border-gray-200">
+        <h1 class="text-center text-2xl font-normal text-gray-800 mb-8">My Galleries</h1>
+        <ul>
+            {{range .Galleries}}
+                <li>
+                    <a href="/galleries/{{.ID}}/edit">{{.Title}}</a>
+                </li>
+            {{end}}
+        </ul>
+    </div>
+</div>
+
+{{ template "footer" .}}

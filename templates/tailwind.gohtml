@@ -10,12 +10,20 @@
     <header class="bg-gray-900 shadow-sm">
       <nav class="px-8 py-6 flex items-center text-gray-100">
         <div class="text-2xl pr-12 font-serif font-semibold tracking-wide">Lenslocked</div>
-        <div class="flex-grow">
-          <a class="text-lg font-normal hover:text-white transition-colors duration-200 pr-8" href="/">Home</a>
-          <a class="text-lg font-normal hover:text-white transition-colors duration-200 pr-8" href="/contact">Contact</a>
-          <a class="text-lg font-normal hover:text-white transition-colors duration-200 pr-8" href="/faq">FAQ</a>
+        <div class="flex items-center space-x-8">
+          <a class="text-lg font-normal hover:text-white transition-colors duration-200" href="/">Home</a>
+          <a class="text-lg font-normal hover:text-white transition-colors duration-200" href="/contact">Contact</a>
+          <a class="text-lg font-normal hover:text-white transition-colors duration-200" href="/faq">FAQ</a>
         </div>
-        <div class="flex items-center space-x-4">
+        {{if currentUser}}
+          <div class="flex-grow flex justify-end items-center space-x-8">
+            <a class="text-lg font-normal hover:text-white transition-colors duration-200" href="/galleries">My Galleries</a>
+            <a class="text-lg font-normal hover:text-white transition-colors duration-200" href="/galleries/new">New Gallery</a>
+          </div>
+        {{else}}
+          <div class="flex-grow"></div>
+        {{end}}
+        <div class="flex items-center space-x-4 ml-8">
           {{if currentUser}}
             <form action="/signout" method="POST">
               <div class="hidden">
