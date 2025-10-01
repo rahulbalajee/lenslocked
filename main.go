@@ -242,6 +242,7 @@ func main() {
 			r.Post("/{id}", galleriesC.ProcessEdit)
 			r.Get("/", galleriesC.Index)
 		})
+		r.Get("/{id}", galleriesC.Show)
 	})
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
