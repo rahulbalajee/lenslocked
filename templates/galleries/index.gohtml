@@ -1,15 +1,63 @@
 {{ template "header" .}}
 
-<div class="py-16 flex justify-center">
-    <div class="w-full max-w-md px-8 py-10 bg-white rounded-lg shadow-sm border border-gray-200">
-        <h1 class="text-center text-2xl font-normal text-gray-800 mb-8">My Galleries</h1>
-        <ul>
-            {{range .Galleries}}
-                <li>
-                    <a href="/galleries/{{.ID}}/edit">{{.Title}}</a>
-                </li>
-            {{end}}
-        </ul>
+<div class="py-16 px-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-normal text-gray-800">My Galleries</h1>
+            <a href="/galleries/new" class="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition-colors duration-200">
+                New Gallery
+            </a>
+        </div>
+        
+        {{if .Galleries}}
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <table class="w-full">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-sm font-medium text-gray-600">Gallery Name</th>
+                            <th class="px-6 py-4 text-right text-sm font-medium text-gray-600">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        {{range .Galleries}}
+                            <tr class="hover:bg-gray-50 transition-colors duration-150">
+                                <td class="px-6 py-4">
+                                    <div class="text-lg font-normal text-gray-800">{{.Title}}</div>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="flex items-center justify-end space-x-2">
+                                        <a href="/galleries/{{.ID}}" 
+                                           class="inline-flex items-center px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors duration-200">
+                                            View
+                                        </a>
+                                        <a href="/galleries/{{.ID}}/edit" 
+                                           class="inline-flex items-center px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors duration-200">
+                                            Edit
+                                        </a>
+                                        <form action="/galleries/{{.ID}}/delete" method="post" class="inline" onsubmit="return confirm('Are you sure you want to delete this gallery?')">
+                                            <div class="hidden">
+                                                {{csrfField}}
+                                            </div>
+                                            <button type="submit" class="inline-flex items-center px-3 py-1 text-sm bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors duration-200">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+            </div>
+        {{else}}
+            <div class="text-center py-12">
+                <div class="text-gray-500 text-lg mb-4">No galleries yet</div>
+                <p class="text-gray-400 mb-6">Create your first gallery to get started</p>
+                <a href="/galleries/new" class="px-6 py-3 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition-colors duration-200">
+                    Create Gallery
+                </a>
+            </div>
+        {{end}}
     </div>
 </div>
 
