@@ -246,6 +246,7 @@ func main() {
 			r.Get("/{id}/edit", galleriesC.Edit)
 			r.Post("/{id}", galleriesC.ProcessEdit)
 			r.Get("/", galleriesC.Index)
+			r.Post("/{id}/delete", galleriesC.Delete)
 		})
 		r.Get("/{id}", galleriesC.Show)
 	})
