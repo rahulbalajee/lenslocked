@@ -83,8 +83,9 @@ func (g Galleries) ProcessEdit(w http.ResponseWriter, r *http.Request) {
 
 func (g Galleries) Index(w http.ResponseWriter, r *http.Request) {
 	type Gallery struct {
-		ID    int
-		Title string
+		ID        int
+		Title     string
+		Published bool
 	}
 
 	var data struct {
@@ -102,8 +103,9 @@ func (g Galleries) Index(w http.ResponseWriter, r *http.Request) {
 
 	for _, gallery := range galleries {
 		data.Galleries = append(data.Galleries, Gallery{
-			ID:    gallery.ID,
-			Title: gallery.Title,
+			ID:        gallery.ID,
+			Title:     gallery.Title,
+			Published: gallery.Published,
 		})
 	}
 
@@ -114,6 +116,14 @@ func (g Galleries) Show(w http.ResponseWriter, r *http.Request) {
 	gallery, err := g.galleryByID(w, r)
 	if err != nil {
 		return
+	}
+
+	user := context.User(r.Context())
+	if !gallery.Published {
+		if user.ID != gallery.UserID {
+			http.Error(w, "Gallery not found", http.StatusNotFound)
+			return
+		}
 	}
 
 	var data struct {
@@ -140,6 +150,22 @@ func (g Galleries) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = g.GalleryService.Delete(gallery.ID)
+	if err != nil {
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/galleries", http.StatusFound)
+}
+
+func (g Galleries) Publish(w http.ResponseWriter, r *http.Request) {
+	gallery, err := g.galleryByID(w, r, userMustOwnGallery)
+	if err != nil {
+		return
+	}
+	gallery.Published = true
+
+	err = g.GalleryService.Publish(gallery)
 	if err != nil {
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)
 		return

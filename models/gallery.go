@@ -7,9 +7,10 @@ import (
 )
 
 type Gallery struct {
-	ID     int
-	UserID int
-	Title  string
+	ID        int
+	UserID    int
+	Title     string
+	Published bool
 }
 
 type GalleryService struct {
@@ -24,9 +25,12 @@ func (gs *GalleryService) Create(title string, userID int) (*Gallery, error) {
 
 	row := gs.DB.QueryRow(`
 		INSERT INTO galleries (title, user_id)
-		VALUES ($1, $2) RETURNING id;`, gallery.Title, gallery.UserID)
+		VALUES ($1, $2) RETURNING id, published;`, gallery.Title, gallery.UserID)
 
-	err := row.Scan(&gallery.ID)
+	err := row.Scan(
+		&gallery.ID,
+		&gallery.Published,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("create gallery: %w", err)
 	}
@@ -40,13 +44,14 @@ func (gs *GalleryService) ByID(id int) (*Gallery, error) {
 	}
 
 	row := gs.DB.QueryRow(`
-		SELECT title, user_id 
+		SELECT title, user_id, published
 		FROM galleries 
 		WHERE id = $1;`, gallery.ID)
 
 	err := row.Scan(
 		&gallery.Title,
 		&gallery.UserID,
+		&gallery.Published,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -60,7 +65,7 @@ func (gs *GalleryService) ByID(id int) (*Gallery, error) {
 
 func (gs *GalleryService) ByUserID(userID int) ([]Gallery, error) {
 	rows, err := gs.DB.Query(`
-		SELECT id, title 
+		SELECT id, title, published
 		FROM galleries 
 		WHERE user_id = $1;`, userID)
 	if err != nil {
@@ -73,7 +78,11 @@ func (gs *GalleryService) ByUserID(userID int) ([]Gallery, error) {
 		gallery := Gallery{
 			UserID: userID,
 		}
-		err = rows.Scan(&gallery.ID, &gallery.Title)
+		err = rows.Scan(
+			&gallery.ID,
+			&gallery.Title,
+			&gallery.Published,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("query galleries by user id: %w", err)
 		}
@@ -86,6 +95,18 @@ func (gs *GalleryService) ByUserID(userID int) ([]Gallery, error) {
 	}
 
 	return galleries, nil
+}
+
+func (gs *GalleryService) Publish(gallery *Gallery) error {
+	_, err := gs.DB.Exec(`
+		UPDATE galleries 
+		SET published = $2
+		WHERE id = $1`, gallery.ID, gallery.Published)
+	if err != nil {
+		return fmt.Errorf("publish gallery: %w", err)
+	}
+
+	return nil
 }
 
 func (gs *GalleryService) Update(gallery *Gallery) error {
