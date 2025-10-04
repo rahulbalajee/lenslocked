@@ -247,7 +247,6 @@ func main() {
 			r.Post("/{id}", galleriesC.ProcessEdit)
 			r.Get("/", galleriesC.Index)
 			r.Post("/{id}/delete", galleriesC.Delete)
-			r.Post("/{id}/publish", galleriesC.Publish)
 		})
 		r.Get("/{id}", galleriesC.Show)
 	})

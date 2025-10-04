@@ -24,7 +24,6 @@ type GalleryService interface {
 	Create(title string, userID int) (*models.Gallery, error)
 	ByID(id int) (*models.Gallery, error)
 	ByUserID(userID int) ([]models.Gallery, error)
-	Publish(*models.Gallery) error
 	Update(gallery *models.Gallery) error
 	Delete(id int) error
 }

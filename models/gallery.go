@@ -97,23 +97,11 @@ func (gs *GalleryService) ByUserID(userID int) ([]Gallery, error) {
 	return galleries, nil
 }
 
-func (gs *GalleryService) Publish(gallery *Gallery) error {
-	_, err := gs.DB.Exec(`
-		UPDATE galleries 
-		SET published = $2
-		WHERE id = $1`, gallery.ID, gallery.Published)
-	if err != nil {
-		return fmt.Errorf("publish gallery: %w", err)
-	}
-
-	return nil
-}
-
 func (gs *GalleryService) Update(gallery *Gallery) error {
 	_, err := gs.DB.Exec(`
 		UPDATE galleries 
-		SET title = $2
-		WHERE id = $1`, gallery.ID, gallery.Title)
+		SET title = $2, published = $3
+		WHERE id = $1`, gallery.ID, gallery.Title, gallery.Published)
 	if err != nil {
 		return fmt.Errorf("update gallery: %w", err)
 	}

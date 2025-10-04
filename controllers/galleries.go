@@ -55,11 +55,13 @@ func (g Galleries) Edit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var data struct {
-		ID    int
-		Title string
+		ID        int
+		Title     string
+		Published bool
 	}
 	data.ID = gallery.ID
 	data.Title = gallery.Title
+	data.Published = gallery.Published
 
 	g.Template.Edit.Execute(w, r, data)
 }
@@ -70,6 +72,12 @@ func (g Galleries) ProcessEdit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	gallery.Title = r.FormValue("title")
+
+	gallery.Published, err = strconv.ParseBool(r.FormValue("published"))
+	if err != nil {
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
 
 	err = g.GalleryService.Update(gallery)
 	if err != nil {
@@ -150,22 +158,6 @@ func (g Galleries) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = g.GalleryService.Delete(gallery.ID)
-	if err != nil {
-		http.Error(w, "Something went wrong", http.StatusInternalServerError)
-		return
-	}
-
-	http.Redirect(w, r, "/galleries", http.StatusFound)
-}
-
-func (g Galleries) Publish(w http.ResponseWriter, r *http.Request) {
-	gallery, err := g.galleryByID(w, r, userMustOwnGallery)
-	if err != nil {
-		return
-	}
-	gallery.Published = true
-
-	err = g.GalleryService.Publish(gallery)
 	if err != nil {
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)
 		return
