@@ -182,6 +182,11 @@ func main() {
 		"galleries/show.gohtml",
 		"tailwind.gohtml",
 	))
+	galleriesC.Template.ShowToAll = views.Must(views.ParseFS(
+		templates.FS,
+		"galleries/showtoall.gohtml",
+		"tailwind.gohtml",
+	))
 
 	// Create new Chi router
 	r := chi.NewRouter()
@@ -247,8 +252,9 @@ func main() {
 			r.Post("/{id}", galleriesC.ProcessEdit)
 			r.Get("/", galleriesC.Index)
 			r.Post("/{id}/delete", galleriesC.Delete)
+			r.Get("/{id}", galleriesC.Show)
 		})
-		r.Get("/{id}", galleriesC.Show)
+		r.Get("/g/{id}", galleriesC.ShowToAll)
 	})
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {

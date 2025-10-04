@@ -14,10 +14,11 @@ import (
 
 type Galleries struct {
 	Template struct {
-		New   Executer
-		Edit  Executer
-		Index Executer
-		Show  Executer
+		New       Executer
+		Edit      Executer
+		Index     Executer
+		Show      Executer
+		ShowToAll Executer
 	}
 	GalleryService GalleryService
 }
@@ -121,17 +122,9 @@ func (g Galleries) Index(w http.ResponseWriter, r *http.Request) {
 }
 
 func (g Galleries) Show(w http.ResponseWriter, r *http.Request) {
-	gallery, err := g.galleryByID(w, r)
+	gallery, err := g.galleryByID(w, r, userMustOwnGallery)
 	if err != nil {
 		return
-	}
-
-	user := context.User(r.Context())
-	if !gallery.Published {
-		if user.ID != gallery.UserID {
-			http.Error(w, "Gallery not found", http.StatusNotFound)
-			return
-		}
 	}
 
 	var data struct {
@@ -144,11 +137,39 @@ func (g Galleries) Show(w http.ResponseWriter, r *http.Request) {
 
 	for range 20 {
 		w, h := rand.IntN(500)+200, rand.IntN(500)+200
-		catImageURL := fmt.Sprintf("https://picsum.photos/%d/%d", w, h)
-		data.Images = append(data.Images, catImageURL)
+		imageURL := fmt.Sprintf("https://picsum.photos/%d/%d", w, h)
+		data.Images = append(data.Images, imageURL)
 	}
 
 	g.Template.Show.Execute(w, r, data)
+}
+
+func (g Galleries) ShowToAll(w http.ResponseWriter, r *http.Request) {
+	gallery, err := g.galleryByID(w, r)
+	if err != nil {
+		return
+	}
+
+	if !gallery.Published {
+		http.Error(w, "Gallery not found", http.StatusNotFound)
+		return
+	}
+
+	var data struct {
+		ID     int
+		Title  string
+		Images []string
+	}
+	data.ID = gallery.ID
+	data.Title = gallery.Title
+
+	for range 20 {
+		w, h := rand.IntN(500)+200, rand.IntN(500)+200
+		imageURL := fmt.Sprintf("https://picsum.photos/%d/%d", w, h)
+		data.Images = append(data.Images, imageURL)
+	}
+
+	g.Template.ShowToAll.Execute(w, r, data)
 }
 
 func (g Galleries) Delete(w http.ResponseWriter, r *http.Request) {
