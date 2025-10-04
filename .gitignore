@@ -2,3 +2,4 @@ tmp/
 lenslocked
 bcrypt
 .env
+images/
