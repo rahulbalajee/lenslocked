@@ -2,4 +2,6 @@ tmp/
 lenslocked
 bcrypt
 .env
+
+# Images directory in development
 images/
