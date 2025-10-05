@@ -26,4 +26,5 @@ type GalleryService interface {
 	ByUserID(userID int) ([]models.Gallery, error)
 	Update(gallery *models.Gallery) error
 	Delete(id int) error
+	Images(galleryID int) ([]models.Image, error)
 }
