@@ -1,7 +1,7 @@
 {{ template "header" .}}
 
 <div class="py-16 flex justify-center">
-    <div class="w-full max-w-md px-8 py-10 bg-white rounded-lg shadow-sm border border-gray-200">
+    <div class="w-full max-w-4xl px-8 py-10 bg-white rounded-lg shadow-sm border border-gray-200">
         <h1 class="text-center text-2xl font-normal text-gray-800 mb-8">Edit Gallery</h1>
         <form action="/galleries/{{.ID}}" method="post" class="space-y-6" onsubmit="return confirm('Are you sure you want to update this gallery?')">
             <div class="hidden">
@@ -24,6 +24,16 @@
                 <button type="submit" class="w-full px-4 py-3 bg-gray-800 text-white font-normal rounded-md hover:bg-gray-700 transition-colors duration-200">Update Gallery</button>
             </div>
         </form>
+        <div class="pt-8 mt-8 border-t border-gray-200">
+            <h2 class="text-sm font-medium text-gray-600 mb-4">Images</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {{range .Images}}
+                    <div class="aspect-square overflow-hidden rounded-lg bg-gray-100 hover:shadow-lg transition-shadow duration-200">
+                        <img src="/galleries/{{.GalleryID}}/images/{{.FilenameEscaped}}" alt="Gallery image" class="w-full h-full object-cover hover:scale-105 transition-transform duration-200">
+                    </div>
+                {{end}}
+            </div>
+        </div>
         <!-- Dangerous Actions -->
         <div class="pt-8 mt-8 border-t border-gray-200">
             <h2 class="text-sm font-medium text-red-600 mb-4">Dangerous Actions</h2>
