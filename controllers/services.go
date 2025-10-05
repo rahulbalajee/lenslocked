@@ -27,4 +27,5 @@ type GalleryService interface {
 	Update(gallery *models.Gallery) error
 	Delete(id int) error
 	Images(galleryID int) ([]models.Image, error)
+	Image(galleryId int, filename string) (models.Image, error)
 }
