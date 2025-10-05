@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
@@ -127,8 +128,9 @@ func (g Galleries) Show(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type Image struct {
-		GalleryID int
-		Filename  string
+		GalleryID       int
+		Filename        string
+		FilenameEscaped string
 	}
 	var data struct {
 		ID     int
@@ -147,8 +149,9 @@ func (g Galleries) Show(w http.ResponseWriter, r *http.Request) {
 
 	for _, image := range images {
 		data.Images = append(data.Images, Image{
-			GalleryID: image.GalleryID,
-			Filename:  image.Filename,
+			GalleryID:       image.GalleryID,
+			Filename:        image.Filename,
+			FilenameEscaped: url.PathEscape(image.Filename),
 		})
 	}
 
@@ -167,8 +170,9 @@ func (g Galleries) ShowToAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type Image struct {
-		GalleryID int
-		Filename  string
+		GalleryID       int
+		Filename        string
+		FilenameEscaped string
 	}
 	var data struct {
 		ID     int
@@ -187,8 +191,9 @@ func (g Galleries) ShowToAll(w http.ResponseWriter, r *http.Request) {
 
 	for _, image := range images {
 		data.Images = append(data.Images, Image{
-			GalleryID: image.GalleryID,
-			Filename:  image.Filename,
+			GalleryID:       image.GalleryID,
+			Filename:        image.Filename,
+			FilenameEscaped: url.PathEscape(image.Filename),
 		})
 	}
 
