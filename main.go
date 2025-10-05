@@ -255,6 +255,7 @@ func main() {
 			r.Get("/{id}", galleriesC.Show)
 		})
 		r.Get("/g/{id}", galleriesC.ShowToAll)
+		r.Get("/{id}/images/{filename}", galleriesC.Image)
 	})
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
