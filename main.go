@@ -253,6 +253,7 @@ func main() {
 			r.Get("/", galleriesC.Index)
 			r.Post("/{id}/delete", galleriesC.Delete)
 			r.Get("/{id}", galleriesC.Show)
+			r.Post("/{id}/images/{filename}/delete", galleriesC.DeleteImage)
 		})
 		r.Get("/g/{id}", galleriesC.ShowToAll)
 		r.Get("/{id}/images/{filename}", galleriesC.Image)
