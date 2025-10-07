@@ -1,6 +1,10 @@
 package controllers
 
-import "github.com/rahulbalajee/lenslocked/models"
+import (
+	"io"
+
+	"github.com/rahulbalajee/lenslocked/models"
+)
 
 // Decouple SessionService from controllers using interface
 type SessionService interface {
@@ -29,4 +33,5 @@ type GalleryService interface {
 	Images(galleryID int) ([]models.Image, error)
 	Image(galleryId int, filename string) (models.Image, error)
 	DeleteImage(galleryID int, filename string) error
+	CreateImage(galleryID int, filename string, contents io.Reader) error
 }
