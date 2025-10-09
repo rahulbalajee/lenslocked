@@ -35,21 +35,21 @@ func checkContentType(r io.ReadSeeker, allowedTypes []string) error {
 	}
 
 	contentType := http.DetectContentType(testBytes)
-	if slices.Contains(allowedTypes, contentType) {
-		return nil
+	if !slices.Contains(allowedTypes, contentType) {
+		return FileError{
+			Issue: fmt.Sprintf("invalid content type: %v", contentType),
+		}
 	}
 
-	return FileError{
-		Issue: fmt.Sprintf("invalid content type: %v", contentType),
-	}
+	return nil
 }
 
 func checkExtension(filename string, allowedExtensions []string) error {
-	if hasExtension(filename, allowedExtensions) {
-		return nil
+	if !hasExtension(filename, allowedExtensions) {
+		return FileError{
+			Issue: fmt.Sprintf("invalid extension: %v", filepath.Ext(filename)),
+		}
 	}
 
-	return FileError{
-		Issue: fmt.Sprintf("invalid extension: %v", filepath.Ext(filename)),
-	}
+	return nil
 }
