@@ -64,7 +64,7 @@ func (u Users) ProcessSignUp(w http.ResponseWriter, r *http.Request) {
 	// Set the token returned from SessionService.Create in a Cookie in user's browser for authenticating future requests
 	setCookie(w, CookieSession, session.Token)
 
-	http.Redirect(w, r, "/users/me", http.StatusFound)
+	http.Redirect(w, r, "/galleries", http.StatusFound)
 }
 
 func (u Users) SignIn(w http.ResponseWriter, r *http.Request) {
@@ -107,7 +107,7 @@ func (u Users) ProcessSignIn(w http.ResponseWriter, r *http.Request) {
 
 	setCookie(w, CookieSession, session.Token)
 
-	http.Redirect(w, r, "/users/me", http.StatusFound)
+	http.Redirect(w, r, "/galleries", http.StatusFound)
 }
 
 // SetUser and RequireUser middleware are required, or this will PANIC!
