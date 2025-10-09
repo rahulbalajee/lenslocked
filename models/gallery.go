@@ -176,9 +176,19 @@ func (gs *GalleryService) Image(galleryId int, filename string) (Image, error) {
 	}, nil
 }
 
-func (gs *GalleryService) CreateImage(galleryID int, filename string, contents io.Reader) error {
+func (gs *GalleryService) CreateImage(galleryID int, filename string, contents io.ReadSeeker) error {
+	err := checkContentType(contents, gs.imageContentsType())
+	if err != nil {
+		return fmt.Errorf("creating image %v: %w", filename, err)
+	}
+
+	err = checkExtension(filename, gs.extensions())
+	if err != nil {
+		return fmt.Errorf("creating images %v: %w", filename, err)
+	}
+
 	galleryDir := gs.galleryDir(galleryID)
-	err := os.MkdirAll(galleryDir, 0755)
+	err = os.MkdirAll(galleryDir, 0755)
 	if err != nil {
 		return fmt.Errorf("creating gallery-%d images directory: %w", galleryID, err)
 	}
@@ -214,6 +224,10 @@ func (gs *GalleryService) DeleteImage(galleryID int, filename string) error {
 
 func (gs *GalleryService) extensions() []string {
 	return []string{".png", ".jpg", ".jpeg", ".gif"}
+}
+
+func (gs *GalleryService) imageContentsType() []string {
+	return []string{"image/png", "image/jpg", "image/jpeg", "image/gif"}
 }
 
 func (gs *GalleryService) galleryDir(id int) string {

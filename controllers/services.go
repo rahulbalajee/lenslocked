@@ -33,5 +33,5 @@ type GalleryService interface {
 	Images(galleryID int) ([]models.Image, error)
 	Image(galleryId int, filename string) (models.Image, error)
 	DeleteImage(galleryID int, filename string) error
-	CreateImage(galleryID int, filename string, contents io.Reader) error
+	CreateImage(galleryID int, filename string, contents io.ReadSeeker) error
 }
