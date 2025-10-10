@@ -35,6 +35,10 @@ type GalleryService struct {
 	// Image extensions that are allowed to be uploaded by the user
 	// If this is not set will fetch a default value from this package
 	ImageExtensions []string
+
+	// Image Content-Type that are allowed when user uploaded an image
+	// If this is not set will fetch a default value from this package
+	ImageContentTypes []string
 }
 
 func (gs *GalleryService) Create(title string, userID int) (*Gallery, error) {
@@ -153,7 +157,7 @@ func (gs *GalleryService) Images(galleryID int) ([]Image, error) {
 		return nil, fmt.Errorf("retrieving gallery images: %w", err)
 	}
 
-	extensions := gs.extensions()
+	extensions := gs.defaultExtensions()
 	if gs.ImageExtensions != nil {
 		extensions = gs.ImageExtensions
 	}
@@ -191,12 +195,17 @@ func (gs *GalleryService) Image(galleryId int, filename string) (Image, error) {
 }
 
 func (gs *GalleryService) CreateImage(galleryID int, filename string, contents io.ReadSeeker) error {
-	err := checkContentType(contents, gs.imageContentsType())
+	contentType := gs.defaultImageContentsType()
+	if gs.ImageContentTypes != nil {
+		contentType = gs.ImageContentTypes
+	}
+
+	err := checkContentType(contents, contentType)
 	if err != nil {
 		return fmt.Errorf("creating image %v: %w", filename, err)
 	}
 
-	extensions := gs.extensions()
+	extensions := gs.defaultExtensions()
 	if gs.ImageExtensions != nil {
 		extensions = gs.ImageExtensions
 	}
@@ -240,11 +249,11 @@ func (gs *GalleryService) DeleteImage(galleryID int, filename string) error {
 	return nil
 }
 
-func (gs *GalleryService) extensions() []string {
+func (gs *GalleryService) defaultExtensions() []string {
 	return []string{".png", ".jpg", ".jpeg", ".gif"}
 }
 
-func (gs *GalleryService) imageContentsType() []string {
+func (gs *GalleryService) defaultImageContentsType() []string {
 	return []string{"image/png", "image/jpg", "image/jpeg", "image/gif"}
 }
 
