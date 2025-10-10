@@ -31,6 +31,10 @@ type GalleryService struct {
 	// images. If not set, the GalleryService will default to using the "images"
 	// directory.
 	ImagesDir string
+
+	// Image extensions that are allowed to be uploaded by the user
+	// If this is not set will fetch a default value from this package
+	ImageExtensions []string
 }
 
 func (gs *GalleryService) Create(title string, userID int) (*Gallery, error) {
@@ -149,9 +153,14 @@ func (gs *GalleryService) Images(galleryID int) ([]Image, error) {
 		return nil, fmt.Errorf("retrieving gallery images: %w", err)
 	}
 
+	extensions := gs.extensions()
+	if gs.ImageExtensions != nil {
+		extensions = gs.ImageExtensions
+	}
+
 	var images []Image
 	for _, file := range allFiles {
-		if hasExtension(file, gs.extensions()) {
+		if hasExtension(file, extensions) {
 			images = append(images, Image{
 				GalleryID: galleryID,
 				Path:      file,
@@ -187,9 +196,13 @@ func (gs *GalleryService) CreateImage(galleryID int, filename string, contents i
 		return fmt.Errorf("creating image %v: %w", filename, err)
 	}
 
-	err = checkExtension(filename, gs.extensions())
+	extensions := gs.extensions()
+	if gs.ImageExtensions != nil {
+		extensions = gs.ImageExtensions
+	}
+	err = checkExtension(filename, extensions)
 	if err != nil {
-		return fmt.Errorf("creating images %v: %w", filename, err)
+		return fmt.Errorf("creating image %v: %w", filename, err)
 	}
 
 	galleryDir := gs.galleryDir(galleryID)
