@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	gs := models.GalleryService{}
+	gs := models.ImageService{}
 
 	fmt.Println(gs.Images(3))
 }
