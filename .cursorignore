@@ -1,0 +1,9 @@
+# Allow Cursor to see environment files for development
+!.env
+!.env.template
+
+# But still ignore other things
+tmp/
+lenslocked
+bcrypt
+images/
