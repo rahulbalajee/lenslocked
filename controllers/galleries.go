@@ -22,6 +22,7 @@ type Galleries struct {
 		ShowToAll Executer
 	}
 	GalleryService GalleryService
+	ImageService   ImageService
 }
 
 func (g Galleries) New(w http.ResponseWriter, r *http.Request) {
@@ -71,7 +72,7 @@ func (g Galleries) Edit(w http.ResponseWriter, r *http.Request) {
 	data.Title = gallery.Title
 	data.Published = gallery.Published
 
-	images, err := g.GalleryService.Images(gallery.ID)
+	images, err := g.ImageService.Images(gallery.ID)
 	if err != nil {
 		fmt.Println(err)
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)
@@ -162,7 +163,7 @@ func (g Galleries) Show(w http.ResponseWriter, r *http.Request) {
 	data.ID = gallery.ID
 	data.Title = gallery.Title
 
-	images, err := g.GalleryService.Images(gallery.ID)
+	images, err := g.ImageService.Images(gallery.ID)
 	if err != nil {
 		fmt.Println(err)
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)
@@ -204,7 +205,7 @@ func (g Galleries) ShowToAll(w http.ResponseWriter, r *http.Request) {
 	data.ID = gallery.ID
 	data.Title = gallery.Title
 
-	images, err := g.GalleryService.Images(gallery.ID)
+	images, err := g.ImageService.Images(gallery.ID)
 	if err != nil {
 		fmt.Println(err)
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)
@@ -246,7 +247,7 @@ func (g Galleries) Image(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	image, err := g.GalleryService.Image(galleryID, filename)
+	image, err := g.ImageService.Image(galleryID, filename)
 	if err != nil {
 		if errors.Is(err, models.ErrNotFound) {
 			http.Error(w, "Image not found", http.StatusNotFound)
@@ -281,7 +282,7 @@ func (g Galleries) UploadImage(w http.ResponseWriter, r *http.Request) {
 		}
 		defer file.Close()
 
-		err = g.GalleryService.CreateImage(gallery.ID, fileHeader.Filename, file)
+		err = g.ImageService.CreateImage(gallery.ID, fileHeader.Filename, file)
 		if err != nil {
 			var fileErr models.FileError
 			if errors.As(err, &fileErr) {
@@ -306,7 +307,7 @@ func (g Galleries) DeleteImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = g.GalleryService.DeleteImage(gallery.ID, filename)
+	err = g.ImageService.DeleteImage(gallery.ID, filename)
 	if err != nil {
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)
 		return

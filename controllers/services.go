@@ -30,8 +30,12 @@ type GalleryService interface {
 	ByUserID(userID int) ([]models.Gallery, error)
 	Update(gallery *models.Gallery) error
 	Delete(id int) error
+}
+
+type ImageService interface {
 	Images(galleryID int) ([]models.Image, error)
 	Image(galleryId int, filename string) (models.Image, error)
 	DeleteImage(galleryID int, filename string) error
+	DeleteAllGalleryImages(galleryID int) error
 	CreateImage(galleryID int, filename string, contents io.ReadSeeker) error
 }

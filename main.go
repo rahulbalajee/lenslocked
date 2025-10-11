@@ -100,8 +100,11 @@ func main() {
 	// emailService for sending emails to users
 	emailService := models.NewEmailService(cfg.SMTP)
 
+	imageService := &models.ImageService{}
+
 	galleryService := &models.GalleryService{
-		DB: db,
+		DB:           db,
+		ImageService: imageService,
 	}
 
 	// Setup User middleware
@@ -160,6 +163,7 @@ func main() {
 
 	galleriesC := controllers.Galleries{
 		GalleryService: galleryService,
+		ImageService:   imageService,
 	}
 
 	galleriesC.Template.New = views.Must(views.ParseFS(
