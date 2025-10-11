@@ -5,3 +5,8 @@ bcrypt
 
 # Images directory in development
 images/
+
+# Tailwind
+tailwind/node_modules/
+tailwind/package-lock.json
+tailwind/package.json
