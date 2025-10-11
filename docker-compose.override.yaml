@@ -12,3 +12,14 @@ services:
       - db
     environment:
       ADMINER_DESIGN: dracula
+
+  tailwind:
+    build:
+      context: ./tailwind
+      dockerfile: Dockerfile
+    tty: true
+    restart: unless-stopped
+    volumes:
+      - ./tailwind:/src
+      - ./assets:/dst
+      - ./templates:/templates
