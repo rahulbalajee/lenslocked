@@ -6,9 +6,16 @@ services:
     restart: always
     volumes:
       - ./images:/app/images
-    # TODO: Fix this before production deployment
-    ports:
-      - 3000:3000
     depends_on:
       - db
 
+  caddy:
+    image: caddy:alpine
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+    depends_on:
+      - server
