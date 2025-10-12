@@ -1,4 +1,4 @@
-FROM node:latest
+FROM node:alpine
 WORKDIR /tailwind
 RUN npm init -y && \
     npm install tailwindcss@3 && \
