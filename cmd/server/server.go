@@ -82,17 +82,24 @@ func main() {
 		panic(err)
 	}
 
+	err = run(cfg)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func run(cfg config) error {
 	// Initiate DB connection and close it later when function exits
 	db, err := models.Open(cfg.PSQL)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer db.Close()
 
 	// Run DB migrations automatically at startup
 	err = models.MigrateFS(db, migrations.FS, ".")
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	// Dependency injection (passing in the PostgreSQL DB)
@@ -289,8 +296,5 @@ func main() {
 
 	// Start the server
 	fmt.Printf("Starting server on %s...", cfg.Server.Address)
-	err = http.ListenAndServe(cfg.Server.Address, r)
-	if err != nil {
-		panic(err)
-	}
+	return http.ListenAndServe(cfg.Server.Address, r)
 }
