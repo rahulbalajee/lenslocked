@@ -22,9 +22,11 @@ services:
       - server
 
   db:
+    user: "999:999"
     environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
       POSTGRES_USER: ${PSQL_USER}
       POSTGRES_PASSWORD: ${PSQL_PASSWORD}
       POSTGRES_DB: ${PSQL_DATABASE}
     volumes:
-      - ~/data/lenslocked.com/psql:/var/lib/postgresql/data
+      - ~/data/lenslocked.com/psql:/var/lib/postgresql/data/pgdata
