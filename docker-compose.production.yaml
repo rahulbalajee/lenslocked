@@ -22,7 +22,6 @@ services:
       - server
 
   db:
-    user: "999:999"
     environment:
       PGDATA: /var/lib/postgresql/data/pgdata
       POSTGRES_USER: ${PSQL_USER}
