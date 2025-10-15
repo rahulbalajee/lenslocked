@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	DefaultSender = "support@lenslocked.com"
+	DefaultSender = "support@lenslocked.bc-noc-dev.com"
 )
 
 type SMTPConfig struct {
