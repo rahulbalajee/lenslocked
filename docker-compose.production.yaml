@@ -1,6 +1,14 @@
+x-logging: &highlight-logging
+  driver: fluentd
+  options:
+    fluentd-address: "tls://otel.highlight.io:24284"
+    fluentd-async: "true"
+    fluentd-sub-second-precision: "true"
+    tag: "highlight.project_id=ldwy425g"
+
 services:
   server:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
     restart: always
@@ -8,6 +16,8 @@ services:
       - ~/data/lenslocked.com/images:/app/images
     depends_on:
       - db
+    logging: *highlight-logging
+
 
   caddy:
     image: caddy:alpine
@@ -20,6 +30,7 @@ services:
       - ~/data/lenslocked.com/caddy:/data
     depends_on:
       - server
+    logging: *highlight-logging
 
   db:
     environment:
@@ -28,6 +39,7 @@ services:
       POSTGRES_DB: ${PSQL_DATABASE}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    logging: *highlight-logging
 
 volumes:
   postgres_data:
