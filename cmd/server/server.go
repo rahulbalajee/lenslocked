@@ -15,6 +15,7 @@ import (
 	"github.com/rahulbalajee/lenslocked/models"
 	"github.com/rahulbalajee/lenslocked/templates"
 	"github.com/rahulbalajee/lenslocked/views"
+	"golang.org/x/oauth2"
 )
 
 type config struct {
@@ -28,6 +29,7 @@ type config struct {
 	Server struct {
 		Address string
 	}
+	OAuthProviders map[string]*oauth2.Config
 }
 
 func loadEnvConfig() (config, error) {
@@ -72,6 +74,18 @@ func loadEnvConfig() (config, error) {
 	cfg.CSRF.TrustedOrigins = origins
 
 	cfg.Server.Address = os.Getenv("SERVER_ADDRESS")
+
+	cfg.OAuthProviders = make(map[string]*oauth2.Config)
+	dbxConfig := &oauth2.Config{
+		ClientID:     os.Getenv("DROPBOX_APP_ID"),
+		ClientSecret: os.Getenv("DROPBOX_APP_SECRET"),
+		Scopes:       []string{"files.metadata.read", "files.content.read"},
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  "https://www.dropbox.com/oauth2/authorize",
+			TokenURL: "https://api.dropboxapi.com/oauth2/token",
+		},
+	}
+	cfg.OAuthProviders["dropbox"] = dbxConfig
 
 	return cfg, nil
 }
@@ -215,6 +229,10 @@ func run(cfg config) error {
 		"tailwind.gohtml",
 	))
 
+	oauthC := controllers.OAuth{
+		ProviderConfigs: cfg.OAuthProviders,
+	}
+
 	// Create new Chi router
 	r := chi.NewRouter()
 
@@ -289,6 +307,11 @@ func run(cfg config) error {
 
 	assetsHandler := http.FileServer(http.Dir("assets"))
 	r.Get("/assets/*", http.StripPrefix("/assets", assetsHandler).ServeHTTP)
+
+	r.Route("/oauth/{provider}", func(r chi.Router) {
+		r.Use(umw.RequireUser)
+		r.Get("/connect", oauthC.Connect)
+	})
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Page not found", http.StatusNotFound)
