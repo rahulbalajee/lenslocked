@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -28,6 +29,7 @@ func (oa OAuth) Connect(w http.ResponseWriter, r *http.Request) {
 
 	state := csrf.Token(r)
 	setCookie(w, "oauth_state", state)
+	setCookie(w, "oauth_verifier", verifier)
 
 	url := config.AuthCodeURL(
 		state,
@@ -37,6 +39,53 @@ func (oa OAuth) Connect(w http.ResponseWriter, r *http.Request) {
 	)
 
 	http.Redirect(w, r, url, http.StatusFound)
+}
+
+func (oa OAuth) Callback(w http.ResponseWriter, r *http.Request) {
+	provider := chi.URLParam(r, "provider")
+	provider = strings.ToLower(provider)
+
+	config, ok := oa.ProviderConfigs[provider]
+	if !ok {
+		http.Error(w, "Invalid OAuth2 Service", http.StatusBadRequest)
+		return
+	}
+
+	state := r.FormValue("state")
+	cookieState, err := readCookie(r, "oauth_state")
+	if err != nil || cookieState != state {
+		if err != nil {
+			fmt.Println(err)
+		}
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+	deleteCookie(w, "oauth_state")
+
+	verifier, err := readCookie(r, "oauth_verifier")
+	if err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+	deleteCookie(w, "oauth_verifier")
+
+	code := r.FormValue("code")
+	token, err := config.Exchange(
+		r.Context(),
+		code,
+		oauth2.SetAuthURLParam("redirect_uri", redirectURI(r, provider)),
+		oauth2.VerifierOption(verifier),
+	)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Something went wrong", http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	enc.SetIndent("", " ")
+	enc.Encode(token)
 }
 
 func redirectURI(r *http.Request, provider string) string {
