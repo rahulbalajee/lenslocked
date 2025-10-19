@@ -29,6 +29,10 @@
             {{template "upload_image_form" .}}
         </div>
         <div class="pt-8 mt-8 border-t border-gray-200">
+            <h2 class="text-sm font-medium text-gray-600 mb-4">Add Images via Dropbox</h2>
+            {{template "images_via_dropbox_form" .}}
+        </div>
+        <div class="pt-8 mt-8 border-t border-gray-200">
             <h2 class="text-sm font-medium text-gray-600 mb-4">Images</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {{range .Images}}
@@ -84,3 +88,13 @@
 </form>
 {{end}}
 
+{{define "images_via_dropbox_form"}}
+<form action="/galleries/{{.ID}}/images/url" id="dropbox-chooser-form" method="post" enctype="multipart/form-data" class="space-y-4" onsubmit="return confirm('Are you sure you want to upload this image?')">
+    <div class="hidden">
+        {{csrfField}}
+    </div>
+    <div>
+        <label for="images" class="block text-sm font-normal text-gray-600 mb-2">Upload Images</label>
+    </div>
+</form>
+{{end}}
