@@ -22,26 +22,21 @@ func (fe FileError) Error() string {
 	return fmt.Sprintf("invalid file: %v", fe.Issue)
 }
 
-func checkContentType(r io.ReadSeeker, allowedTypes []string) error {
+func checkContentType(r io.Reader, allowedTypes []string) ([]byte, error) {
 	testBytes := make([]byte, 512)
-	_, err := r.Read(testBytes)
+	n, err := r.Read(testBytes)
 	if err != nil {
-		return fmt.Errorf("checking content type: %w", err)
-	}
-
-	_, err = r.Seek(0, 0)
-	if err != nil {
-		return fmt.Errorf("checking content type: %w", err)
+		return nil, fmt.Errorf("checking content type: %w", err)
 	}
 
 	contentType := http.DetectContentType(testBytes)
 	if !slices.Contains(allowedTypes, contentType) {
-		return FileError{
+		return nil, FileError{
 			Issue: fmt.Sprintf("invalid content type: %v", contentType),
 		}
 	}
 
-	return nil
+	return testBytes[:n], nil
 }
 
 func checkExtension(filename string, allowedExtensions []string) error {

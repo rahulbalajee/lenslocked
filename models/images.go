@@ -79,13 +79,13 @@ func (is *ImageService) Images(galleryID int) ([]Image, error) {
 	return images, nil
 }
 
-func (is *ImageService) CreateImage(galleryID int, filename string, contents io.ReadSeeker) error {
+func (is *ImageService) CreateImage(galleryID int, filename string, contents io.Reader) error {
 	contentType := is.defaultImageContentsType()
 	if is.ContentTypes != nil {
 		contentType = is.ContentTypes
 	}
 
-	err := checkContentType(contents, contentType)
+	readBytes, err := checkContentType(contents, contentType)
 	if err != nil {
 		return fmt.Errorf("creating image %v: %w", filename, err)
 	}
@@ -112,7 +112,12 @@ func (is *ImageService) CreateImage(galleryID int, filename string, contents io.
 	}
 	defer dst.Close()
 
-	_, err = io.Copy(dst, contents)
+	completeFile := io.MultiReader(
+		bytes.NewReader(readBytes),
+		contents,
+	)
+
+	_, err = io.Copy(dst, completeFile)
 	if err != nil {
 		return fmt.Errorf("copying contents to image: %w", err)
 	}
@@ -133,14 +138,7 @@ func (is *ImageService) CreateImageViaURL(galleryID int, url string) error {
 		return fmt.Errorf("downloading image: invalid status code %d", resp.StatusCode)
 	}
 
-	imagesBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("reading image bytes: %w", err)
-	}
-
-	readSeeker := bytes.NewReader(imagesBytes)
-
-	return is.CreateImage(galleryID, filename, readSeeker)
+	return is.CreateImage(galleryID, filename, resp.Body)
 }
 
 func (is *ImageService) DeleteImage(galleryID int, filename string) error {

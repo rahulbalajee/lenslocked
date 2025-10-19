@@ -37,6 +37,6 @@ type ImageService interface {
 	Image(galleryId int, filename string) (models.Image, error)
 	DeleteImage(galleryID int, filename string) error
 	DeleteAllGalleryImages(galleryID int) error
-	CreateImage(galleryID int, filename string, contents io.ReadSeeker) error
+	CreateImage(galleryID int, filename string, contents io.Reader) error
 	CreateImageViaURL(galleryID int, url string) error
 }
