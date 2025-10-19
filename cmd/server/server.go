@@ -300,6 +300,7 @@ func run(cfg config) error {
 			r.Get("/{id}", galleriesC.Show)
 			r.Post("/{id}/images/{filename}/delete", galleriesC.DeleteImage)
 			r.Post("/{id}/images", galleriesC.UploadImage)
+			r.Post("/{id}/images/url", galleriesC.ImageViaURL)
 		})
 		r.Get("/g/{id}", galleriesC.ShowToAll)
 		r.Get("/{id}/images/{filename}", galleriesC.Image)
@@ -319,6 +320,6 @@ func run(cfg config) error {
 	})
 
 	// Start the server
-	fmt.Printf("Starting server on %s...", cfg.Server.Address)
+	fmt.Printf("Starting server on %s...\n", cfg.Server.Address)
 	return http.ListenAndServe(cfg.Server.Address, r)
 }
