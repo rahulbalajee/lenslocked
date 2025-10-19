@@ -79,6 +79,20 @@
         event.target.parentElement.remove();
       }
     </script>
+    <script type="text/javascript" src="https://www.dropbox.com/static/api/2/dropins.js" id="dropboxjs" data-app-key="milrrinmt91rl1b"></script>
+    <script>
+      let options = {
+        success: function(files) {
+          alert("Here's the file link: " + files[0].link);
+        },
+        linkType: "direct",
+        multiselect: true,
+        folderselect: false,
+        extensions: ["images"],
+      };
+      let button = Dropbox.createChooseButton(options);
+      document.body.appendChild(button);
+    </script>
   </body>
 </html>
 {{end}}
