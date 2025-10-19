@@ -1,11 +1,14 @@
 package models
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
 	"io/fs"
+	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 )
@@ -115,6 +118,29 @@ func (is *ImageService) CreateImage(galleryID int, filename string, contents io.
 	}
 
 	return nil
+}
+
+func (is *ImageService) CreateImageViaURL(galleryID int, url string) error {
+	filename := path.Base(url)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return fmt.Errorf("downloading image: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("downloading image: invalid status code %d", resp.StatusCode)
+	}
+
+	imagesBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("reading image bytes: %w", err)
+	}
+
+	readSeeker := bytes.NewReader(imagesBytes)
+
+	return is.CreateImage(galleryID, filename, readSeeker)
 }
 
 func (is *ImageService) DeleteImage(galleryID int, filename string) error {

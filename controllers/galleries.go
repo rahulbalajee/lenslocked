@@ -313,8 +313,11 @@ func (g Galleries) ImageViaURL(w http.ResponseWriter, r *http.Request) {
 
 	files := r.PostForm["images"]
 	for _, file := range files {
-		// TODO: Download files
-		fmt.Printf("Downloading %s...\n", file)
+		err = g.ImageService.CreateImageViaURL(gallery.ID, file)
+		if err != nil {
+			http.Error(w, "Something went wrong with an image: "+file, http.StatusInternalServerError)
+			return
+		}
 	}
 
 	editPath := fmt.Sprintf("/galleries/%d/edit", gallery.ID)
