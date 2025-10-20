@@ -31,9 +31,9 @@ func Must(t Template, err error) Template {
 	return t
 }
 
-func ParseFS(fs fs.FS, patterns ...string) (Template, error) {
+func ParseFS(fs fs.FS, tmplToExecute string, patterns ...string) (Template, error) {
 	// We need this to be able to add custom function to our templates
-	tmpl := template.New(path.Base(patterns[0]))
+	tmpl := template.New(path.Base(tmplToExecute))
 
 	// We need to add the csrfField function before parsing the template or will get an error
 	// No access to request r here so just stubbing
@@ -51,6 +51,8 @@ func ParseFS(fs fs.FS, patterns ...string) (Template, error) {
 			},
 		},
 	)
+
+	patterns = append(patterns, tmplToExecute)
 
 	// After adding custom function using FuncMap, parse the templates
 	tmpl, err := tmpl.ParseFS(fs, patterns...)
