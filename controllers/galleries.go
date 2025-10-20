@@ -7,11 +7,11 @@ import (
 	"net/url"
 	"path/filepath"
 	"strconv"
-	"sync"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/rahulbalajee/lenslocked/context/context"
 	"github.com/rahulbalajee/lenslocked/models"
+	"golang.org/x/sync/errgroup"
 )
 
 type Galleries struct {
@@ -314,17 +314,17 @@ func (g Galleries) ImageViaURL(w http.ResponseWriter, r *http.Request) {
 
 	files := r.PostForm["images"]
 
-	var wg sync.WaitGroup
-	wg.Add(len(files))
-
+	var eg errgroup.Group
 	for _, file := range files {
 		imageFile := file
-		go func() {
-			g.ImageService.CreateImageViaURL(gallery.ID, imageFile)
-			wg.Done()
-		}()
+		eg.Go(func() error {
+			return g.ImageService.CreateImageViaURL(gallery.ID, imageFile)
+		})
 	}
-	wg.Wait()
+	if err = eg.Wait(); err != nil {
+		http.Error(w, "Unable to download all images", http.StatusInternalServerError)
+		return
+	}
 
 	editPath := fmt.Sprintf("/galleries/%d/edit", gallery.ID)
 	http.Redirect(w, r, editPath, http.StatusFound)
